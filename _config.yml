@@ -1,1 +1,16 @@
-theme: minima
+title: My Notebook
+author:
+  name: Phuong Dao
+  email: phuong018@gmail.com
+
+description: >
+  This is the place where I keep my small notes together.
+
+remote_theme: jekyll/minima
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+minima:
+  skin: classic
