@@ -1,5 +1,4 @@
 ---
-title: Welcome to my zone
+title: My Notes
+description: A place where I keep my notes
 ---
-
-## The place where I keep my notes
