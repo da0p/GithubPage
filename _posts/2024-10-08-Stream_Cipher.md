@@ -4,6 +4,7 @@ date: 2024-10-08
 ---
 
 # Stream Cipher
+
 ## Symmetric Ciphers
 A cipher defined over (K, M, C) is a pair a of "efficient" algorithms (E, D) where
 ```
@@ -40,6 +41,7 @@ In practice: eps is a scalar and
 - **Related key**
 
 ## Attack on Stream Cipher
+
 ### Attack 1: Two-time pad is insecure
 - Never use stream cipher key more than once
 ```
@@ -47,6 +49,7 @@ c1 <- m1 xor PRG(k)
 c2 <- m2 xor PRG(k)
 Then c1 xor c2 -> m1 xor m2
 ```
+
 ### Attack 2: No integrity
 - xOr cipher text with a value, the plain text will be affected as well when decrypted
 ```
@@ -54,7 +57,9 @@ c <- m1 xor PRG(k)
 m2 <- c xor p
 m2 xor PRG(k) -> m1 xor p
 ```
+
 ## Real-world Stream Cipher
+
 ### RC4
 - Bias in initial output: Pr(2nd byte = 0) = 2/256
 - Probability of (0, 0) is 1/256^2 + 1/256^3
