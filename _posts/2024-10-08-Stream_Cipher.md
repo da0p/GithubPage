@@ -4,14 +4,12 @@ date: 2024-10-08
 ---
 
 # Stream Cipher
-
 ## Symmetric Ciphers
 A cipher defined over (K, M, C) is a pair a of "efficient" algorithms (E, D) where
-```
-E: K x M -> C  
-D: K x C -> M
-```
-such that for every m belongs to M, k belongs K, D(K, E(K, m)) = m
+$$E: K \times M \rightarrow C \newline$$
+$$D: K \times C \rightarrow M$$
+such that 
+$$D(K, E(K, m)) = m \space\space \forall m \in M, \forall k \in K$$
 
 ## Information Theoretic Security
 - Secure cipher means cipher text should reveal no "info" about plain text
@@ -34,32 +32,28 @@ In practice: eps is a scalar and
 - eps negligible: eps <= 1/2^80 (won't happen over life of key)
 
 ## WEP
-- PRG's seed = IV || k
+- PRG's seed = $IV || k$
 - 24-bit IV -> 16 MB, it will be recycled
 - long-term k, never changes
 - **Two-time pad**
 - **Related key**
 
 ## Attack on Stream Cipher
-
 ### Attack 1: Two-time pad is insecure
 - Never use stream cipher key more than once
+```math
+c1 \leftarrow m1 \oplus PRG(k)\newline
+c2 \leftarrow m2 \oplus PRG(k)\newline
 ```
-c1 <- m1 xor PRG(k)
-c2 <- m2 xor PRG(k)
-Then c1 xor c2 -> m1 xor m2
-```
-
+Then 
+$$c1 \oplus c2 \rightarrow m1 \oplus m2$$
 ### Attack 2: No integrity
 - xOr cipher text with a value, the plain text will be affected as well when decrypted
-```
-c <- m1 xor PRG(k)
-m2 <- c xor p
-m2 xor PRG(k) -> m1 xor p
-```
+$$c \leftarrow m1 \oplus PRG(k)\newline$$
+$$m2 \leftarrow c \oplus p\newline$$
+$$m2 \oplus PRG(k) \rightarrow m1 \oplus p$$
 
 ## Real-world Stream Cipher
-
 ### RC4
 - Bias in initial output: Pr(2nd byte = 0) = 2/256
 - Probability of (0, 0) is 1/256^2 + 1/256^3
@@ -70,21 +64,16 @@ m2 xor PRG(k) -> m1 xor p
 - Badly broken
 
 ### eStream
-- PRG: {0, 1}^s x R -> {0, 1}^n
-- R is a nonce. A nonce is a non-repeating value for a given key
-```
-E(k, m ; r) = m xor PRG(k; r)
-```
+- PRG: $$\{0, 1\}^s \times R \rightarrow \{0, 1\}^n$$
+- R is a nonce. A nonce is a non-repeating value for a given key $E(k, m ; r) = m \oplus PRG(k; r)$
 - The pair (k, r) is never used more than once since r is a nonce
 
 ### eStream: Salsa 20
 - We basically extend key, nonce, and counter to 64 bytes, then apply a function h that transforms 64 bytes to 64 bytes again and again for 10 times.
 - Then do addition between the final output and the input
 - This whole process above is the function H
-```
-Salsa20: {0, 1}^128 x {0, 1}^64 -> {0, 1}^n
-Salsa20(k; r) = H(k, (r, 0)) || H(k, (r, 1)) || ...
-```
+$$Salsa20: \{0, 1\}^{128} x \{0, 1\}^{64} \rightarrow \{0, 1\}^n\newline$$
+$$Salsa20(k; r) = H(k, (r, 0)) || H(k, (r, 1)) || ...$$
 
 ## PRG Security Definition
 - Goal: Define what it means PRG is indistinguishable from a truly random generator, or the output of PRG given a key is indistinguishible from an uniform distribution
@@ -95,9 +84,7 @@ Salsa20(k; r) = H(k, (r, 0)) || H(k, (r, 1)) || ...
 
 ### Advantage
 - The difference between the probability of a statistical test on a pseudo-random generator output given a key and the probability of the statistical test on a truly random output
-```
-Adv_PRG[A, G] = |Pr[A(G(k)) = 1] - Pr[A(r) = 1]| belongs [0, 1]
-```
+$$Adv_{PRG}[A, G] = |Pr[A(G(k)) = 1] - Pr[A(r) = 1]| \in [0, 1]$$
 - If Adv is close to 1, A can distinguish G from random or A broke G
 - Adv is close to 0, A can not distinguish G from random
 
