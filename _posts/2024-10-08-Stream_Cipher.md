@@ -71,7 +71,7 @@ m2 \oplus PRG(k) \rightarrow m1 \oplus p
 - Badly broken
 
 ### eStream
-- PRG: $\{{0, 1}\}^s \times R \rightarrow \{{0, 1}\}^n$
+- PRG: $[0, 1]^s \times R \rightarrow [0, 1]^n$
 - R is a nonce. A nonce is a non-repeating value for a given key $E(k, m ; r) = m \oplus PRG(k; r)$
 - The pair (k, r) is never used more than once since r is a nonce
 
@@ -80,7 +80,7 @@ m2 \oplus PRG(k) \rightarrow m1 \oplus p
 - Then do addition between the final output and the input
 - This whole process above is the function H
 ```math
-Salsa20: \{{0, 1}\}^128 x \{{0, 1}\}^64 \rightarrow \{{0, 1}\}^n\newline
+Salsa20: [0, 1]^{128} \times [0, 1]^{64} \rightarrow [0, 1]^n\newline
 Salsa20(k; r) = H(k, (r, 0)) || H(k, (r, 1)) || ...
 ```
 
