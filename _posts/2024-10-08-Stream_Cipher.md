@@ -1,7 +1,6 @@
 ---
 title: "Stream Cipher - A Formal Review"
 date: 2024-10-08
-usemathjax: true
 ---
 
 # Stream Cipher
@@ -33,7 +32,7 @@ In practice: eps is a scalar and
 - eps negligible: eps <= 1/2^80 (won't happen over life of key)
 
 ## WEP
-- PRG's seed = $IV || k$
+- $$ PRG_{seed} = IV | k$$
 - 24-bit IV -> 16 MB, it will be recycled
 - long-term k, never changes
 - **Two-time pad**
@@ -42,10 +41,11 @@ In practice: eps is a scalar and
 ## Attack on Stream Cipher
 ### Attack 1: Two-time pad is insecure
 - Never use stream cipher key more than once
-```math
-c1 \leftarrow m1 \oplus PRG(k)\newline
-c2 \leftarrow m2 \oplus PRG(k)\newline
-```
+
+$$c1 \leftarrow m1 \oplus PRG(k)\newline$$
+
+$$c2 \leftarrow m2 \oplus PRG(k)\newline$$
+
 Then 
 $$c1 \oplus c2 \rightarrow m1 \oplus m2$$
 ### Attack 2: No integrity

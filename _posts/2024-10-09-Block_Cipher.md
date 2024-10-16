@@ -15,9 +15,9 @@ Block cipher is considerably slower than stream cipher
 
 ### PRF
 Pseudo Random Function (PRF) defined over (K, X, Y):
-```math
-    F: K \times X \rightarrow Y \newline
-```
+
+$$F: K \times X \rightarrow Y \newline$$
+
 K: Key
 
 X: Input
@@ -28,9 +28,9 @@ such that exists "efficient" algorithm to evaluate F(k, x)
 
 ### PRP
 Pseudo Random Permutation (PRP) defined over (K, X):
-```math
-    E: K \times X \rightarrow X
-```
+
+$$E: K \times X \rightarrow X$$
+
 such that
 - Exists "efficient" deterministic algorithm to evaluate E(k, x)
 - The function E(k, .) is one-to-one
@@ -41,7 +41,7 @@ such that
 - PRP is also a PRF where X=Y (the input space and output space are the same) and is efficiently invertible
 
 ### Secure PRFs
-Let F: $K \times X \rightarrow Y$ be a PRF
+Let F: $$K \times X \rightarrow Y$$ be a PRF
 $Funcs[X, Y]$: the set of all functions from X to Y
 
 $S_F$ = $F(k, .)$ such that $k \in K$  and $S_F \in Funcs[X, Y]$
@@ -53,9 +53,7 @@ A PRF is secure if a random function in $Funcs[X, Y]$ is indistinguishable from 
 ### PRG (Pseudo-random generator)
 Let $F: K \times \{0, 1\}^n \rightarrow \{0, 1\}^n$ be a secure PRF.
 Then the following $G: K \rightarrow \{0, 1\}^{nt}$ is a secure PRG:
-```math
-G(k) = F(k, 0) || F(k, 1) || ... || F(k, t)
-```
+$$G(k) = F(k, 0) || F(k, 1) || ... || F(k, t)$$
 
 ## Feistel Network
 ![Feistel Network](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/FeistelNetwork.drawio.png)
@@ -81,9 +79,7 @@ E(k, m) is a randomized algorithm
 ![Many-Time Key](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/Many-Time-Key.drawio.png)
 - Encrypting same message twice gives different ciphertexts
 - Ciphertext must be longer than plaintext or
-```math
-CT_size = PT_size + randombit_{size}
-```
+$$CT_size = PT_size + randombit_{size}$$
 
 ### Solution 2: Nonce-based Encryption
 - **nonce n**: A value that changes from message to message. The key point is that (k, n) pair is never used more than once
