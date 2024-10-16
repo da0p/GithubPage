@@ -1,6 +1,7 @@
 ---
 title: "Stream Cipher - A Formal Review"
 date: 2024-10-08
+usemathjax: true
 ---
 
 # Stream Cipher
