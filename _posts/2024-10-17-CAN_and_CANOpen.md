@@ -55,5 +55,69 @@ Errors
 
 If an error is detected, the node that detects will send an error frame. Error counter will be incremented, and the message will be resent.
 
-![Can Error Limitation](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/CAN-Error-Limitation.drawio.png)
+![CAN Error Limitation](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/CAN-Error-Limitation.drawio.png)
 
+# CANOpen
+## Device Model
+Every CANOpen device has to implement certain standard features in its controlling software.
+- **Communication Unit** implements the protocols for messaging with the other nodes in the network. Starting and resetting the device is controlled via a state machine. It must contains Initialization, Pre-operational, Operational, and Stopped (NTM SM)
+- **Object Dictionary** is an array of variables with a 16-bit index. Additionally, each variable can have an 8-bit subindex. 
+- **Application** performs the desired function of the device, after the state machine is set to operational state
+
+![CAN Device Model](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/CAN_DeviceModel.drawio.png)
+
+## Object Dictionary
+- An array with 65535 (0xFFFF) entries
+- Divided into different areas
+- Application data is stored here
+
+## Process Data Objects (PDO)
+- Very efficient data transmission based on producer-consumer model
+- Transfer at most 8 byte of data with no protocol overhead
+- PDOs correspond to objects in the object dictionary
+- Number and length of PDOs is device-specific, and is specified in device or application profiles or alternatively manufacturer specific.
+- CANOpen distinguishes between transmit (TPDO) and receive (RPDO) process data objects
+
+## Communication Profile
+- Part of Object Dictionary
+- Include information how data are placed in a PDO
+- How PDOs can be sent
+
+## Service Data Objects (SDO)
+- Provide access to all entries in the Object Dictionary of a device
+- Possible to transfer data with more than 8 bytes but requiring segmentation in the SDO protocol, flow control
+- Upload/download of data requires the specification of the service type to be executed within SDO protocol
+- SDO transfer types:
+  - normal transfer: any number of data bytes
+  - expedited transfer: fast transfer, up to 4 bytes
+  - block transfer (bulk data)
+- Client/Server model, communication directly between two nodes
+
+## Network Management (NMT)
+![CAN NMT](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/CAN_NMT.drawio.png)
+
+|Transition            |Description                                                                        |
+|----------------------|-----------------------------------------------------------------------------------|
+| (1)                  | At power on, the NMT state initialization                                         |
+| (2)                  | NMT state initialization finished - enter NMT state Pre-operational automatically |
+| (3)                  | NMT service start remote node indication or by local control                      |
+| (4), (7)             | NMT service enter pre-operational indication                                      |
+| (5), (8)             | NMT service stop remote node indication                                           |
+| (6)                  | NMT service start remote node indication                                          |
+| (9), (10), (11)      | NMT service reset node indication                                                 |
+| (12), (13), (14)     | NMT service reset communication indication                                        |
+
+## Layer Setting Service (LSS)
+- LSS is used to change CANOpen nodeID and CAN bit rate without using HW components
+- LSS is based on master-slave model
+- LSS slaves require a unique signature by which they can be addressed
+- LSS address is a 128-bit value, which consists of the 4 sub-indexes of the identity object in the object dictionary
+- LSS Services:
+  - Switch state
+  - Configuration
+  - Inquire
+  - Identification
+  - Fastscan
+- LSS uses two reserved CAN identifier (0x7E4 and 0x7E5)
+- LSS services use a fixed CAN frame length of 8 data bytes
+- LSS uses command specifiers (0x00 to 0x7F) to identify the commands
