@@ -121,3 +121,42 @@ Every CANOpen device has to implement certain standard features in its controlli
 - LSS uses two reserved CAN identifier (0x7E4 and 0x7E5)
 - LSS services use a fixed CAN frame length of 8 data bytes
 - LSS uses command specifiers (0x00 to 0x7F) to identify the commands
+
+# SocketCAN
+CAN, CANOpen, and SocketCAN can be represented as the following diagram
+
+![OSI](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/SocketCAN.drawio.png)
+
+Inside Linux CAN, we can find three different socket types: **CAN_RAW**, **CAN_BCM**, and **CAN_ISOTP**
+
+- **CAN_RAW**: Socket for CAN communication
+- **CAN_BCM**: Broadcast-Manager for CAN. Allows to send periodic messages
+- **CAN_ISOTP**: Transport-layered socket for ISOTP communication
+
+![Linux CAN](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/Linux_CAN.drawio.png)
+
+## CAN Interfaces
+- canX: real CAN interfaces connected to the system
+- vcanX: virtual CAN-interfaces
+- slcanX: serial line CAN-interface. Socket wrapper for serial-to-CAN interfaces, supporting the slcan protocol
+- vxcan: virtual can tunnel across network namespaces, used for forwarding traffic to a container
+## Virtual CAN 
+Virtual CAN can be used for testing purpose. In order to set up a vcan interface
+```
+sudo ip link add dev vcan0 type vcan
+```
+Configure vcan0
+Increase TX queue
+```
+sudo ip link set vcan0 txqueue len 4000
+```
+
+Then bring it up
+```
+sudo ip link set vcan0 up
+```
+![Linux CAN](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/SocketCANUseCase1.drawio.png)
+
+## CAN utilities
+There are several CAN utilities provided by Linux
+- candump: listen to CAN packets and filter them
