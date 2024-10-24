@@ -162,7 +162,7 @@ There are several CAN utilities provided by Linux
 ### candump
 Listen to CAN packets and filter them
 
-![Linux CAN](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/SocketCANUseCase1.drawio.png)
+![SocketCAN](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/SocketCANUseCase1.drawio.png)
 
 ### cangw
 Manage PF_CAN netlink gateway
@@ -190,5 +190,5 @@ Also we can modify the packet data. Here we again filter the nodeId: #123 to #33
 ```
 cangw -A -s vcan0 -d vcan1 -e -f 123:FFF -m SET:ILD:345.8.1122334455667788
 ```
-![Linux CAN](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/cangw.drawio.png)
+![cangw](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/cangw.drawio.png)
 
