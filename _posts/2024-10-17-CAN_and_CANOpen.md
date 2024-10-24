@@ -148,15 +148,47 @@ sudo ip link add dev vcan0 type vcan
 Configure vcan0
 Increase TX queue
 ```
-sudo ip link set vcan0 txqueue len 4000
+sudo ip link set vcan0 txqueue 4000
 ```
 
 Then bring it up
 ```
 sudo ip link set vcan0 up
 ```
-![Linux CAN](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/SocketCANUseCase1.drawio.png)
 
 ## CAN utilities
 There are several CAN utilities provided by Linux
-- candump: listen to CAN packets and filter them
+
+### candump
+Listen to CAN packets and filter them
+
+![Linux CAN](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/SocketCANUseCase1.drawio.png)
+
+### cangw
+Manage PF_CAN netlink gateway
+- We can route message from one vcan to another. In order to use cangw utility, the driver must be loaded first.
+- We can modify the packet
+```
+sudo modprobe can-gw
+```
+And we can add a rule to route the packets from one interface to another
+```
+cangw -A -s vcan0 -d vcan1 -e
+```
+
+We can also add a rule to filter certain packets from a canId
+```
+cangw -A -s vcan0 -d vcan1 -e -f 123:FFF
+```
+
+Besides, cangw can modify the packet such as filtering canId: #123, and modifying that canId to #333. We also take only 4 bytes from the input
+```
+cangw -A -s vcan0 -d vcan1 -e -f 123:FFF -m SET:IL:234.4.1122334455667788
+```
+
+Also we can modify the packet data. Here we again filter the nodeId: #123 to #333, also take full 8 bytes input, then change it to 0x1122334455667788
+```
+cangw -A -s vcan0 -d vcan1 -e -f 123:FFF -m SET:ILD:345.8.1122334455667788
+```
+![Linux CAN](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/cangw.drawio.png)
+
