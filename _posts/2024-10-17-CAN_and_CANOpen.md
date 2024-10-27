@@ -329,3 +329,99 @@ nc localhost 8080
 
 On the isotpdump terminal, we will see the messages going to the destination canId: 123
 
+#### isotptun
+
+Carries IP over CAN ISO-TP tunnel
+
+![isotpserver](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/isotptun.drawio.png)
+
+In this use case, we can use network namespace to simulate two physical devices. 
+
+Create network namespace
+
+```bash
+sudo ip netns add device2
+```
+
+Create a vxcan interface
+
+```bash
+sudo ip link add vxcan0 type vxcan peer name vxcan1
+```
+
+Move vxcan1 into network namespace device2
+
+```bash
+sudo ip link set vxcan1 netns device
+```
+
+Bring up vcan interfaces
+
+```bash
+sudo ip link set vcan0 up
+sudo ip link set vxcan0 up
+sudo cangw -A -s vcan0 -d vxcan0
+sudo cangw -A -s vxcan1 -d vcan0 
+```
+
+and also the one in the network namespace **device2**
+
+```bash
+sudo ip netns exec device2 ip link set vcan0 up
+sudo ip netns exec device2 ip link set vxcan0 up
+sudo ip netns exec device2 sudo cangw -A -s vcan0 -d vxcan0
+sudo ip netns exec device2 sudo cangw -A -s vxcan1 -d vcan0 
+```
+
+then let's create the tun interfaces
+
+```bash
+isotptun -s 123 -d 456 vcan0
+```
+
+also for device in the network namespace
+
+```bash
+sudo ip netns exec device2 isotptun -s 456 -d 123 vcan0
+```
+
+We then need to set up ip address for ctun0 and ctun1
+
+```bash
+sudo ip addr add 10.0.0.1 peer 10.0.0.2 dev ctun0
+sudo ip link set ctun0 up
+
+sudo ip netns exec device2 ip addr add 10.0.0.2 peer 10.0.0.1 dev ctun0
+sudo ip netns exec device2 ip link set ctun0 up
+```
+
+Now we can use **tshark** to listen to traffic from one interface
+
+```bash
+sudo tshark -i ctun1
+```
+
+and we can ping the address 10.0.0.1 from 10.0.0.2
+
+```bash
+sudo tshark -i ctun0
+
+sudo ip netns exec device2 ping 10.0.0.1
+```
+
+![isotptun_ping](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/isotptun_ping.png)
+
+we can even run an http server
+
+```bash
+python3 -m http.server --bind 10.0.0.1
+```
+
+and then curl from the other interface in the network namespace
+
+```bash
+sudo ip netns exec device2 curl 10.0.0.1:8000/about.md
+```
+
+![isotptun_http_server](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/isotptun_http_server.png)
+
