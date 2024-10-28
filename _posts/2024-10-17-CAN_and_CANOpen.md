@@ -2,9 +2,9 @@
 title: "CAN and CANOpen"
 date: 2024-10-17
 ---
-# CAN
+## CAN
 
-## Main Characteristics
+### Main Characteristics
 
 - Works under harsh environment conditions, resilient to electromagnetic interference
 - High error tolerance
@@ -12,7 +12,7 @@ date: 2024-10-17
 - Short frame length
 - Data rates up to 1 Mbit/s
 
-## Standard Data Frame
+### Standard Data Frame
 
 ![Can Frame](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/CAN-Frame.drawio.png)
 
@@ -37,32 +37,32 @@ date: 2024-10-17
 - **End of frame field**: Indication of end of frame
 - **Intermission**: Gap between two frames
 
-## Extended Data Frame
+### Extended Data Frame
 
 - 29-bit identifier
 - Differentiation between the two formats: we have the IDE bit, if IDE = 0,
   then the format is extended format
 - Both formats can coexist on the bus
 
-## CAN Arbitration
+### CAN Arbitration
 
 - Depending on the *Arbitration Field*, the lower, the higher priority
 - When a master sends with a lower arbitration, other nodes will stop
   transmission and switch to listen mode
 
-## CAN Bit Stuffing
+### CAN Bit Stuffing
 
 - In CAN, more than 5 consecutive bits of the same polarity means error
 - If there are more than 5 consecutive bits of the same polarity, a bit with
   reverse polarity is inserted to avoid signaling errors.
 
-## CAN Error Handling
+### CAN Error Handling
 
 - There are *Active Error Frame* and *Passive Error Frame*
 - *Active Error Frame* is sent when CAN is in active state, otherwise,
   *Passive Error Frame* is sent
 
-## CAN Error Detection
+### CAN Error Detection
 
 Errors
 
@@ -77,9 +77,9 @@ Error counter will be incremented, and the message will be resent.
 
 ![CAN Error Limitation](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/CAN-Error-Limitation.drawio.png)
 
-# CANOpen
+## CANOpen
 
-## Device Model
+### Device Model
 
 Every CANOpen device has to implement certain standard features in its
 controlling software.
@@ -95,13 +95,13 @@ controlling software.
 
 ![CAN Device Model](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/CAN_DeviceModel.drawio.png)
 
-## Object Dictionary
+### Object Dictionary
 
 - An array with 65535 (0xFFFF) entries
 - Divided into different areas
 - Application data is stored here
 
-## Process Data Objects (PDO)
+### Process Data Objects (PDO)
 
 - Very efficient data transmission based on producer-consumer model
 - Transfer at most 8 byte of data with no protocol overhead
@@ -110,13 +110,13 @@ controlling software.
   application profiles or alternatively manufacturer specific.
 - CANOpen distinguishes between transmit (TPDO) and receive (RPDO) process data objects
 
-## Communication Profile
+### Communication Profile
 
 - Part of Object Dictionary
 - Include information how data are placed in a PDO
 - How PDOs can be sent
 
-## Service Data Objects (SDO)
+### Service Data Objects (SDO)
 
 - Provide access to all entries in the Object Dictionary of a device
 - Possible to transfer data with more than 8 bytes but requiring segmentation
@@ -129,7 +129,7 @@ controlling software.
   - block transfer (bulk data)
 - Client/Server model, communication directly between two nodes
 
-## Network Management (NMT)
+### Network Management (NMT)
 
 ![CAN NMT](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/CAN_NMT.drawio.png)
 
@@ -144,7 +144,7 @@ controlling software.
 | (9), (10), (11)  | NMT service reset node indication                                                 |
 | (12), (13), (14) | NMT service reset communication indication                                        |
 
-## Layer Setting Service (LSS)
+### Layer Setting Service (LSS)
 
 - LSS is used to change CANOpen nodeID and CAN bit rate without using HW components
 - LSS is based on master-slave model
@@ -161,7 +161,7 @@ controlling software.
 - LSS services use a fixed CAN frame length of 8 data bytes
 - LSS uses command specifiers (0x00 to 0x7F) to identify the commands
 
-# SocketCAN
+## SocketCAN
 
 CAN, CANOpen, and SocketCAN can be represented as the following diagram
 
@@ -176,7 +176,7 @@ Inside Linux CAN, we can find three different socket types: **CAN_RAW**,
 
 ![Linux CAN](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/Linux_CAN.drawio.png)
 
-## CAN Interfaces
+### CAN Interfaces
 
 - canX: real CAN interfaces connected to the system
 - vcanX: virtual CAN-interfaces
@@ -185,7 +185,7 @@ Inside Linux CAN, we can find three different socket types: **CAN_RAW**,
 - vxcan: virtual can tunnel across network namespaces, used for forwarding
   traffic to a container
 
-## Virtual CAN
+### Virtual CAN
 
 Virtual CAN can be used for testing purpose. In order to set up a vcan interface
 
@@ -206,17 +206,17 @@ Then bring it up
 sudo ip link set vcan0 up
 ```
 
-## CAN utilities
+### CAN utilities
 
 There are several CAN utilities provided by Linux
 
-### candump
+#### candump
 
 Listen to CAN packets and filter them
 
 ![SocketCAN](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/SocketCANUseCase1.drawio.png)
 
-### cangw
+#### cangw
 
 Manage PF_CAN netlink gateway
 
@@ -256,14 +256,16 @@ cangw -A -s vcan0 -d vcan1 -e -f 123:FFF -m SET:ILD:345.8.1122334455667788
 
 ![cangw](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/cangw.drawio.png)
 
-### isotp utilities
+## ISO-TP (ISO15765-2) and isotp utilities
 
-#### Overview
+### Overview
+
 ISO 15765-2 or ISO-TP, is a communication protocol used in the automotive
 industry to transmit data over a CAN bus. It's designed to provide a reliable
 and efficient way to transfer
 
 The protocol defines:
+
 - Format of the data frames
 - Flow control mechanism
 - Error handling
@@ -278,7 +280,7 @@ or duplicate frames.
 
 ![cangw](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/isotp-communication.drawio.png)
 
-#### isotpsend and isotprecv
+### isotpsend and isotprecv
 
 isotp is a point-to-point communication protocol. We can send a CAN message from one canId to another.
 
@@ -302,7 +304,7 @@ echo -n "Hello World! This is gonna be a good day" | od -An -t x1 | isotpsend -s
 Here we can see that the pattern as mentioned above. A first frame is sent, following
 by a control flow frame, then consecutive frames.
 
-#### isotpserver
+### isotpserver
 
 isotpserver is used to listen to messages from an IP device and then forward the traffic to the corresponding CANId
 
@@ -329,13 +331,13 @@ nc localhost 8080
 
 On the isotpdump terminal, we will see the messages going to the destination canId: 123
 
-#### isotptun
+### isotptun
 
 Carries IP over CAN ISO-TP tunnel
 
 ![isotpserver](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/isotptun.drawio.png)
 
-In this use case, we can use network namespace to simulate two physical devices. 
+In this use case, we can use network namespace to simulate two physical devices.
 
 Create network namespace
 
@@ -425,3 +427,48 @@ sudo ip netns exec device2 curl 10.0.0.1:8000/about.md
 
 ![isotptun_http_server](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/isotptun_http_server.png)
 
+## J1939 and testj1939 utility
+
+### J1939 Overview
+
+J1939 is a set of standards defined by SAE. SAE is used for heavy-duty vehicles
+such as trucks and buses, mobile hydraulics. Substandards of SAE J1939 includes
+
+- J1939: recommended practice for a serial control & communication vehicle network
+- J1939/11: physical layer - 250k bits/s, shielded twisted pair
+- J1939/13: off-board diagnostic connector
+- J1939/21: data link layer
+- J1939/31: network layer
+- J1939/71: vehicle application layer
+- J1939/73: application layer - diagnostics
+- J1939/81: network management
+
+J1939 messages are intended to be broadcast. However, it supports also point-to-point
+messages by including a specific destination address within the message identifier.
+J1939 uses the 29-bit identifier defined within the CAN 2.0B protocol.
+
+J1939 uses 29-bit identifier defined withthe CAN 2.0B protocol
+
+![j1939_identifier](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/j1939_message_format.drawio.png)
+
+- **Priority**: a value of 0 has the highest priority
+- **Data Page**: This bit expands the number of possible Parameter Groups that can
+  be represented by the identifier
+- **PDU Format**: determines the message that can be transmitted with a destination address or if the message is always a broadcast message.
+- **PDU Specific**: If **PDU Format** is between 0 and 239, it contains the destination address. Otherwise, if **PDU Format** is between 240 and 255, the message can only be broadcast and the **PDU Specific** contains a Group Extension, which expands the number of possible broadcast Parameter Groups that can be represented by the identifier.
+
+In J1939, the Name is a 64-bit long label which gives every ECU a unique identity.
+Each device on the network will be associated with at least one Name and one Address. 
+
+Only 254 different devices of the same type can coexist on the network due to the address limit. Address 255 is reserved as a global address for broadcast and address 254 is reserved as the "null address" used by devices that have not yet claimed an address or failed to claim an address.
+
+The process of claiming an address can be described in the following diagram
+
+![j1939_address_claim](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/j1939_address_claim.drawio.png)
+
+Address claim is typically not used since devices on the network usually come with a predefined address.
+
+In order to send data, a message must be constructed with overhead that describes the data to be sent. Messages more than 8 bytes can be sent as multi-packet messages. Multi-packet messages are tramsmitted by means of the Transport Protocol Functions defined in J1939/21. There are two ways of transmitting multi-packet:
+
+- Broadcast Announcement Message (TP_NAM)
+- Connection Management (TP_CM)
