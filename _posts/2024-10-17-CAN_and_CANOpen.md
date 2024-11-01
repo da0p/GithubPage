@@ -457,6 +457,8 @@ J1939 uses 29-bit identifier defined withthe CAN 2.0B protocol
 - **PDU Format**: determines the message that can be transmitted with a destination address or if the message is always a broadcast message.
 - **PDU Specific**: If **PDU Format** is between 0 and 239, it contains the destination address. Otherwise, if **PDU Format** is between 240 and 255, the message can only be broadcast and the **PDU Specific** contains a Group Extension, which expands the number of possible broadcast Parameter Groups that can be represented by the identifier.
 
+Parameter Group Number (PGN) is used to refer to the value of the Reserve bit, DP, PF, and PS fields combined into a single 18 bit value.
+
 In J1939, the Name is a 64-bit long label which gives every ECU a unique identity.
 Each device on the network will be associated with at least one Name and one Address. 
 
@@ -472,3 +474,21 @@ In order to send data, a message must be constructed with overhead that describe
 
 - Broadcast Announcement Message (TP_NAM)
 - Connection Management (TP_CM)
+
+### j1939cat
+
+A utility to transfer a file with j1939
+
+In one terminal
+
+```bash
+# Send a file from address 0x80 to 0xa0
+j1939cat -i test.md vcan0:0x80 vcan0:0xa0
+```
+
+In another terminal
+
+```bash
+# Listen from j1939 address 0xa0
+j1939cat vcan0:0xa0 -r
+```
