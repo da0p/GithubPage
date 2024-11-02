@@ -38,6 +38,8 @@ ECBC-MAC is commonly used as an AES-baed MAC
 
 Padding must be added even if the message is a multiple of a block. And for security, padding must be invertible. ISO standard states that padding with "1000...". The "1" indicates the beginning of the pad
 
+After signing $\|X\|^{1/2}$ messages with ECBC-MAC or $\|K\|^{1/2}$ messages with NMAC, the MACs become insecure
+
 ## NMAC (nested MAC)
 
 Let $F: K \times X \rightarrow K$ be a PRF. We can define a new PRF $F_{NMAC}: K^2 \times X^{\leq L} \rightarrow K$
@@ -55,6 +57,23 @@ Variant of CBC-MAC where $key = (k, k_1, k_2)$
 
 ![CMAC](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/cmac.drawio.png)
 
-## Security Bounds
+## PMAC (Parallel MAC)
 
-After signing $|X|^{1/2}$ messages with ECBC-MAC or $|K|^{1/2}$ messages with NMAC, the MACs become insecure
+Let $F: K \times X \rightarrow X$ be a PRF. Define new PRF such that $F_{PMAC}: K^2 \times X^{\leq L} \rightarrow X$
+
+![PMAC](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/pmac.drawio.png)
+
+Note that $P(k, i)$ is an easy to compute function
+
+One interesting property of PMAC is that PMAC can be quickly updated when one block changes
+
+## One-time MAC and Many-time MAC
+Let $(S,V)$ be a secure one-time MAC over (K, M, $\{0,1\}^n$). Let $F:K_F \times \{0,1\}^n \rightarrow \{0,1\}^n$ be a secure PRF.
+
+**Carter-Wegman MAC**: an algorithm that uses one-time MAC to build a many-time MAC. The idea is
+
+$CW((k_1, k_2), m) = (r, F(k_1, r) \oplus S(k_2, m))$ for random $r \leftarrow \{0,1\}^n$
+
+Note that $S(k_2, m)$ is fast, while $F(k_1, r)$ is slow, but only for the last block
+
+## Collision Resistance
