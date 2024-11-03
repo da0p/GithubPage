@@ -77,3 +77,37 @@ $CW((k_1, k_2), m) = (r, F(k_1, r) \oplus S(k_2, m))$ for random $r \leftarrow \
 Note that $S(k_2, m)$ is fast, while $F(k_1, r)$ is slow, but only for the last block
 
 ## Collision Resistance
+
+Let $H: M \rightarrow T$ be a hash function where $\|M\| >> \|T\|$
+
+A collision for H is a pair $m_0, m_1 \in M$ such that $H(m_0) = H(m_1)$ and $m_0 \neq m_1$
+
+A function H is collision resistant if for all (explicit) efficient algorithms A such that $Adv_{CR}[A,H]$ = $Pr$[Aoutputs collision for H] is negligible
+
+![Collision Resistance](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/collision_resistance.drawio.png)
+
+From this property, we can define a MAC as such
+
+Let $I= (S,V)$ be a MAC for short messages over $(K,M,T)$. Let $H: M^{big} \rightarrow M$.
+
+We can define $I^{big} = (S^{big}, V^{big})$ over $(K, M^{big}, T)$ as:
+
+$$S^{big}(k,m) = S(k, H(m))$$
+$$V^{big}(k, m, t) = V(k, H(m), t)$$
+
+Then if I is a secure MAC and H is collision resistant, then $I^{big}$ is a secure MAC
+
+From this definition, note that collision resistance is necessary for security
+
+## Markle-Damgard
+
+In order to build a collision-resistant hash function for long messages from a collision-resistant hash function for short messages,
+we can use Markle-Damgard iterated construction
+
+Given $h: T \times X \rightarrow T$ (compression function)
+
+We obtain $H: X: X{\leq L} \rightarrow T$ wtih $H_i$ - chaining variables
+
+![Merkle-Damgard](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/merkle_damgard.drawio.png)
+
+Note that if the message is a muliple of the block size, then a dummy PB must be added at the end
