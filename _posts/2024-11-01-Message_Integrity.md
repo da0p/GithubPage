@@ -25,7 +25,7 @@ A MAC is defined as a pair of signing and verifying algorithms over $(K, M, T)$:
 
 ## Encrypted CBC MAC
 
-Let $F: K \times X \rightarrow X$ be a PRP. We can define a new PRF as $F_ECBC \times X^{\leq L} \rightarrow X$
+Let $F: K \times X \rightarrow X$ be a PRP. We can define a new PRF as $F_{ECBC} \times X^{\leq L} \rightarrow X$
 
 In CBC MAC, we need at least two keys for security
 
@@ -99,15 +99,43 @@ Then if I is a secure MAC and H is collision resistant, then $I^{big}$ is a secu
 
 From this definition, note that collision resistance is necessary for security
 
-## Markle-Damgard
+## Merkle-Damgard
 
 In order to build a collision-resistant hash function for long messages from a collision-resistant hash function for short messages,
 we can use Markle-Damgard iterated construction
 
 Given $h: T \times X \rightarrow T$ (compression function)
 
-We obtain $H: X: X{\leq L} \rightarrow T$ wtih $H_i$ - chaining variables
+We obtain $H: X^{\leq L} \rightarrow T$ wtih $H_i$ - chaining variables
 
 ![Merkle-Damgard](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/merkle_damgard.drawio.png)
 
 Note that if the message is a muliple of the block size, then a dummy PB must be added at the end
+
+## Constructing Compression Functions
+
+Since if a compression function is collision resistant, then we can build a secure MAC. We need to find a way to build a compression function
+
+A compression function can be built from a block cipher
+
+$E: K \times \{0, 1\}^n \rightarrow \{0, 1\}^n$ a block cipher. The *Davies-Meyer* compression function: $h(H, m) = E(m, H) \oplus H$
+
+Suppose E is an ideal cipher (collection of $\|K\|$ random perms). Finding a collision $h(H,m) = h(H', m')$ takes $O(2^{n/2})$ evaluations of $(E, D)$
+
+## SHA-256
+
+- Merkle-Damgard function
+- Davies-Meyer compression function
+- Block cipher: SHACAL-2
+
+![SHA-256](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/SHA-256.drawio.png)
+
+## HMAC
+
+Similar construcing process as NMAC
+
+HMAC: $S(k, m) = H(k \oplus opad, H(k \oplus ipad || m))$
+
+![HMAC](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/HMAC.drawio.png)
+
+HMAC is assumed to be a secure PRF
