@@ -79,7 +79,7 @@ E(k, m) is a randomized algorithm
 ![Many-Time Key](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/Many-Time-Key.drawio.png)
 - Encrypting same message twice gives different ciphertexts
 - Ciphertext must be longer than plaintext or
-$$CT_size = PT_size + randombit_{size}$$
+$$CT_{size} = PT_{size} + randombit_{size}$$
 
 ### Solution 2: Nonce-based Encryption
 - **nonce n**: A value that changes from message to message. The key point is that (k, n) pair is never used more than once
