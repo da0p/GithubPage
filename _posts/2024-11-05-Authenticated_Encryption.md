@@ -23,3 +23,17 @@ Authenticated encryption ensures confidentiality against an active adversary tha
 ## Authenticated Encryption Construction
 
 ![Authenticated-Encryption](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/authenticated_encryption.drawio.png)
+
+## Standards
+
+- **GCM**: CTR mode encryption then CW-MAC
+- **CCM**: CBC-MAC then CTR mode encryption
+- **EAX**: CTR mode encryption then CMAC
+
+All support AEAD or authenticated encryption with associated data. All are nonce-based
+
+## TLS 1.2
+
+![TLS-1.2](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/tls_1_2.drawio.png)
+
+Note that for each key, they include two keys: one for MAC and one for encryption
