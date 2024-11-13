@@ -131,3 +131,27 @@ Note that this scheme is well-suited for messages longer than one AES block (16 
 SIV ensures ciphertext integrity
 
 ![SIV](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/SIV.drawio.png)
+
+That means if F is a secure PRF and CTR from $F{ctr}$ is CPA-secure, then SIV-CTR from F, $F_{ctr}$ provides deterministic authenticated encryption
+
+### Construction 2: Use PRP
+For message less than 16 bytes
+
+Let $(E, D)$ be a secure PRP: $E: K \times X \rightarrow X$, then $(E, D)$ is semantic security under deterministic CPA
+
+If we want to encrypt 16-byte messages and deterministic CPA, we can just use AES. However, AES doesn't provide integrity
+
+### Construction 3: Contruscting a wide-block PRP
+Since PRP only performs on n-bit block, we can use wide-block PRP in order to encrypt a longer message
+
+Let $(E, D)$ be a secure PRP
+
+$$E: K \times \{0, 1\}^n$$
+
+EME: a PRP on $\{\}^N$ for $N >> n$
+
+EME is 2x slower than SIV
+
+### Providing Authentication to PRP-based Deterministic Encryption
+
+![PRP-based DE](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/PRP_based_DE.drawio.png)
