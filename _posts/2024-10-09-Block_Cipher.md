@@ -41,7 +41,7 @@ such that
 - PRP is also a PRF where X=Y (the input space and output space are the same) and is efficiently invertible
 
 ### Secure PRFs
-Let F: $$K \times X \rightarrow Y$$ be a PRF
+Let F: $K \times X \rightarrow Y$ be a PRF
 $Funcs[X, Y]$: the set of all functions from X to Y
 
 $S_F$ = $F(k, .)$ such that $k \in K$  and $S_F \in Funcs[X, Y]$
