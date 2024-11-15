@@ -155,3 +155,44 @@ EME is 2x slower than SIV
 ### Providing Authentication to PRP-based Deterministic Encryption
 
 ![PRP-based DE](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/PRP_based_DE.drawio.png)
+
+### Tweakable block ciphers
+
+Construct many PRPs from a key $k \in K$
+
+$$E, D: K \times T \times X \rightarrow X$$
+
+for every $t \in T$ and $k \leftarrow K$: $E(k, t, .)$ is an invertible function
+on X and indistinguishable from random
+
+#### Trivial Construction
+Let $(E, D)$ be a secure PRP, $E: K \times X \rightarrow X$. The trivial tweakable
+construction (suppose K = X)
+$$E_{tweak}(k, t, x) = E(E(k, t), x)$$
+That means to encrypt n blocks need 2n evaluations of E(., .)
+
+#### XTS Tweakable Block Cipher
+Let $(E, D)$ be a secure PRP, $E: K \times \{0,1\}^n \rightarrow \{0,1\}^n$. Then
+$$E_{tweak}((k_1, k_2), (t, i), x)$$
+
+![XTS](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/xts_encryption.drawio.png)
+
+Using XTS for disk encryption is done in practice
+
+![XTS Disk Encryption](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/disk_encryption.drawio.png)
+
+Note: 
+
+- Block-level PRP, not sector-level PRP
+- Use tweakable encryption when you need many independent PRPs from one key
+- XTS is more efficient thant he trivial construction. Both are narrow block: 16 bytes for AES
+- EME is a tweakable mode for wide block: 2x slower than XTS
+
+### Format-Preserving Encryption
+Encrypt a credit-card number will output a look-alike credit-card number, or
+Given $0 \le s \leq 2^n$, build a PRP on $\{0, ..., s-1\}$ from a secure PRF $F: K \times \{0,1\}^n$
+
+Then to encrypt a credit card number: (s = total # credit cards)
+1. Map given cc# to $\{0, ..., s-1\}$
+2. Apply PRP to get an output in $\{0, ..., s-1\}$
+3. Map output back to a cc#
