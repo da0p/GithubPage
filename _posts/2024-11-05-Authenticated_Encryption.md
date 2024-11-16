@@ -135,6 +135,7 @@ SIV ensures ciphertext integrity
 That means if F is a secure PRF and CTR from $F{ctr}$ is CPA-secure, then SIV-CTR from F, $F_{ctr}$ provides deterministic authenticated encryption
 
 ### Construction 2: Use PRP
+
 For message less than 16 bytes
 
 Let $(E, D)$ be a secure PRP: $E: K \times X \rightarrow X$, then $(E, D)$ is semantic security under deterministic CPA
@@ -142,6 +143,7 @@ Let $(E, D)$ be a secure PRP: $E: K \times X \rightarrow X$, then $(E, D)$ is se
 If we want to encrypt 16-byte messages and deterministic CPA, we can just use AES. However, AES doesn't provide integrity
 
 ### Construction 3: Contruscting a wide-block PRP
+
 Since PRP only performs on n-bit block, we can use wide-block PRP in order to encrypt a longer message
 
 Let $(E, D)$ be a secure PRP
@@ -166,12 +168,14 @@ for every $t \in T$ and $k \leftarrow K$: $E(k, t, .)$ is an invertible function
 on X and indistinguishable from random
 
 #### Trivial Construction
+
 Let $(E, D)$ be a secure PRP, $E: K \times X \rightarrow X$. The trivial tweakable
 construction (suppose K = X)
 $$E_{tweak}(k, t, x) = E(E(k, t), x)$$
 That means to encrypt n blocks need 2n evaluations of E(., .)
 
 #### XTS Tweakable Block Cipher
+
 Let $(E, D)$ be a secure PRP, $E: K \times \{0,1\}^n \rightarrow \{0,1\}^n$. Then
 $$E_{tweak}((k_1, k_2), (t, i), x)$$
 
@@ -181,7 +185,7 @@ Using XTS for disk encryption is done in practice
 
 ![XTS Disk Encryption](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/disk_encryption.drawio.png)
 
-Note: 
+Note:
 
 - Block-level PRP, not sector-level PRP
 - Use tweakable encryption when you need many independent PRPs from one key
@@ -189,10 +193,12 @@ Note:
 - EME is a tweakable mode for wide block: 2x slower than XTS
 
 ### Format-Preserving Encryption
+
 Encrypt a credit-card number will output a look-alike credit-card number, or
 Given $0 \le s \leq 2^n$, build a PRP on $\{0, ..., s-1\}$ from a secure PRF $F: K \times \{0,1\}^n$
 
 Then to encrypt a credit card number: (s = total # credit cards)
+
 1. Map given cc# to $\{0, ..., s-1\}$
 2. Apply PRP to get an output in $\{0, ..., s-1\}$
 3. Map output back to a cc#
