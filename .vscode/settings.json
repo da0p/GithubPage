@@ -1,7 +1,9 @@
 {
   "[markdown]": {
     "editor.wordWrap": "wordWrapColumn",
-    "editor.wordWrapColumn": 80
+    "editor.wordWrapColumn": 80,
+    "editor.formatOnSave": true,
+    "prettier.proseWrap": "always"
   },
-  "editor.rulers": [80, 100]
+  "editor.rulers": [80, 100],
 }

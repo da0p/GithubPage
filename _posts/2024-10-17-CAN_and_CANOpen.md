@@ -2,11 +2,13 @@
 title: "CAN and CANOpen"
 date: 2024-10-17
 ---
+
 ## CAN
 
 ### Main Characteristics
 
-- Works under harsh environment conditions, resilient to electromagnetic interference
+- Works under harsh environment conditions, resilient to electromagnetic
+  interference
 - High error tolerance
 - Maximal bus length is limited by signal propagation time on the media
 - Short frame length
@@ -20,18 +22,20 @@ date: 2024-10-17
   remote frame. All devices synchronize on the failing edge of the SoF that is
   sent first after the bus has been in idle state.
 - **Arbitration Field**
-  - *Identifier Field*: 11-bit identifier
-  - *RTR (Remote Transmission Request)*: distinction between data frame (RTR = 0)
-    and remote frame (RTR = 1)
-- **Control Field**: Specification of the data block length in the 4 lower bits (DLC)
+  - _Identifier Field_: 11-bit identifier
+  - _RTR (Remote Transmission Request)_: distinction between data frame (RTR
+    = 0) and remote frame (RTR = 1)
+- **Control Field**: Specification of the data block length in the 4 lower bits
+  (DLC)
 - **Data Field (0.. 8 byte)**: contains a data segment with at most 8 byte of
-    user data
-- **CRC Field**: CRC sequence plus CRC delimiter bit. Frame verification sequence
-  is built over SoF, Identifier Field, CRC, Control Field, and Data Field
-  (not considering stuff bits)
-- **CRC Delimiter**: time for comparison of locally calculated and received CRC polynomial
+  user data
+- **CRC Field**: CRC sequence plus CRC delimiter bit. Frame verification
+  sequence is built over SoF, Identifier Field, CRC, Control Field, and Data
+  Field (not considering stuff bits)
+- **CRC Delimiter**: time for comparison of locally calculated and received CRC
+  polynomial
 - **Acknowledge field**
-  - *ACK Slot* + *ACK delimiter*: all devices that correctly received the frame
+  - _ACK Slot_ + _ACK delimiter_: all devices that correctly received the frame
     (matching CRC sequences), apply a dominant signal level during the ACK slot
     on bus as confirmation to the transmitting device
 - **End of frame field**: Indication of end of frame
@@ -40,13 +44,13 @@ date: 2024-10-17
 ### Extended Data Frame
 
 - 29-bit identifier
-- Differentiation between the two formats: we have the IDE bit, if IDE = 0,
-  then the format is extended format
+- Differentiation between the two formats: we have the IDE bit, if IDE = 0, then
+  the format is extended format
 - Both formats can coexist on the bus
 
 ### CAN Arbitration
 
-- Depending on the *Arbitration Field*, the lower, the higher priority
+- Depending on the _Arbitration Field_, the lower, the higher priority
 - When a master sends with a lower arbitration, other nodes will stop
   transmission and switch to listen mode
 
@@ -58,22 +62,23 @@ date: 2024-10-17
 
 ### CAN Error Handling
 
-- There are *Active Error Frame* and *Passive Error Frame*
-- *Active Error Frame* is sent when CAN is in active state, otherwise,
-  *Passive Error Frame* is sent
+- There are _Active Error Frame_ and _Passive Error Frame_
+- _Active Error Frame_ is sent when CAN is in active state, otherwise, _Passive
+  Error Frame_ is sent
 
 ### CAN Error Detection
 
 Errors
 
-- **Bit monitoring**: Not the same value read than send (not during arbitration process)
+- **Bit monitoring**: Not the same value read than send (not during arbitration
+  process)
 - **Bit stuffing**: More than 5 consecutive bits of the same level
 - **Frame check**: Fixed format(CRC Delimiter, ACK Delimiter, End of Frame)
 - **Acknowledgement check**: No dominant level in the ACK slot
 - **Cyclic Redundancy Check**: 15-bit CRC
 
-If an error is detected, the node that detects will send an error frame.
-Error counter will be incremented, and the message will be resent.
+If an error is detected, the node that detects will send an error frame. Error
+counter will be incremented, and the message will be resent.
 
 ![CAN Error Limitation](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/CAN-Error-Limitation.drawio.png)
 
@@ -108,7 +113,8 @@ controlling software.
 - PDOs correspond to objects in the object dictionary
 - Number and length of PDOs is device-specific, and is specified in device or
   application profiles or alternatively manufacturer specific.
-- CANOpen distinguishes between transmit (TPDO) and receive (RPDO) process data objects
+- CANOpen distinguishes between transmit (TPDO) and receive (RPDO) process data
+  objects
 
 ### Communication Profile
 
@@ -119,8 +125,8 @@ controlling software.
 ### Service Data Objects (SDO)
 
 - Provide access to all entries in the Object Dictionary of a device
-- Possible to transfer data with more than 8 bytes but requiring segmentation
-  in the SDO protocol, flow control
+- Possible to transfer data with more than 8 bytes but requiring segmentation in
+  the SDO protocol, flow control
 - Upload/download of data requires the specification of the service type to be
   executed within SDO protocol
 - SDO transfer types:
@@ -146,7 +152,8 @@ controlling software.
 
 ### Layer Setting Service (LSS)
 
-- LSS is used to change CANOpen nodeID and CAN bit rate without using HW components
+- LSS is used to change CANOpen nodeID and CAN bit rate without using HW
+  components
 - LSS is based on master-slave model
 - LSS slaves require a unique signature by which they can be addressed
 - LSS address is a 128-bit value, which consists of the 4 sub-indexes of the
@@ -180,8 +187,8 @@ Inside Linux CAN, we can find three different socket types: **CAN_RAW**,
 
 - canX: real CAN interfaces connected to the system
 - vcanX: virtual CAN-interfaces
-- slcanX: serial line CAN-interface. Socket wrapper for serial-to-CAN interfaces,
-  supporting the slcan protocol
+- slcanX: serial line CAN-interface. Socket wrapper for serial-to-CAN
+  interfaces, supporting the slcan protocol
 - vxcan: virtual can tunnel across network namespaces, used for forwarding
   traffic to a container
 
@@ -193,8 +200,7 @@ Virtual CAN can be used for testing purpose. In order to set up a vcan interface
 sudo ip link add dev vcan0 type vcan
 ```
 
-Configure vcan0
-Increase TX queue
+Configure vcan0 Increase TX queue
 
 ```bash
 sudo ip link set vcan0 txqueue 4000
@@ -247,8 +253,8 @@ modifying that canId to #333. We also take only 4 bytes from the input
 cangw -A -s vcan0 -d vcan1 -e -f 123:FFF -m SET:IL:234.4.1122334455667788
 ```
 
-Also we can modify the packet data. Here we again filter the nodeId: #123 to #333,
-also take full 8 bytes input, then change it to 0x1122334455667788
+Also we can modify the packet data. Here we again filter the nodeId: #123 to
+#333, also take full 8 bytes input, then change it to 0x1122334455667788
 
 ```bash
 cangw -A -s vcan0 -d vcan1 -e -f 123:FFF -m SET:ILD:345.8.1122334455667788
@@ -273,21 +279,22 @@ The protocol defines:
 The data frames are divided into smaller segments, which are transmitted over
 the CAN bus.
 
-ISO 15765-2 uses a multi-frame format, where a large message is divided into multiple
-smaller frames and sent over the bus. Each frame is identified by a unique ID, which
-allows the receiver to reassemble the frames in the correct order and to detect missing
-or duplicate frames.
+ISO 15765-2 uses a multi-frame format, where a large message is divided into
+multiple smaller frames and sent over the bus. Each frame is identified by a
+unique ID, which allows the receiver to reassemble the frames in the correct
+order and to detect missing or duplicate frames.
 
 ![cangw](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/isotp-communication.drawio.png)
 
 ### isotpsend and isotprecv
 
-isotp is a point-to-point communication protocol. We can send a CAN message from one canId to another.
+isotp is a point-to-point communication protocol. We can send a CAN message from
+one canId to another.
 
 ![isotp-point-to-point](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/isotp-point-2-point.drawio.png)
 
-We will send a string from one node to another via CAN
-First, we need to listen to an isotp message
+We will send a string from one node to another via CAN First, we need to listen
+to an isotp message
 
 ```bash
 isotprecv -s 123 -d 321 vcan0 | xxd -ps -r
@@ -301,12 +308,13 @@ echo -n "Hello World! This is gonna be a good day" | od -An -t x1 | isotpsend -s
 
 ![isotp-send-recv](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/isotp-send-recv.png)
 
-Here we can see that the pattern as mentioned above. A first frame is sent, following
-by a control flow frame, then consecutive frames.
+Here we can see that the pattern as mentioned above. A first frame is sent,
+following by a control flow frame, then consecutive frames.
 
 ### isotpserver
 
-isotpserver is used to listen to messages from an IP device and then forward the traffic to the corresponding CANId
+isotpserver is used to listen to messages from an IP device and then forward the
+traffic to the corresponding CANId
 
 ![isotpserver](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/isotpserver.drawio.png)
 
@@ -329,7 +337,8 @@ nc localhost 8080
 <48656c6c6f20>
 ```
 
-On the isotpdump terminal, we will see the messages going to the destination canId: 123
+On the isotpdump terminal, we will see the messages going to the destination
+canId: 123
 
 ### isotptun
 
@@ -363,7 +372,7 @@ Bring up vcan interfaces
 sudo ip link set vcan0 up
 sudo ip link set vxcan0 up
 sudo cangw -A -s vcan0 -d vxcan0
-sudo cangw -A -s vxcan1 -d vcan0 
+sudo cangw -A -s vxcan1 -d vcan0
 ```
 
 and also the one in the network namespace **device2**
@@ -372,7 +381,7 @@ and also the one in the network namespace **device2**
 sudo ip netns exec device2 ip link set vcan0 up
 sudo ip netns exec device2 ip link set vxcan0 up
 sudo ip netns exec device2 sudo cangw -A -s vcan0 -d vxcan0
-sudo ip netns exec device2 sudo cangw -A -s vxcan1 -d vcan0 
+sudo ip netns exec device2 sudo cangw -A -s vxcan1 -d vcan0
 ```
 
 then let's create the tun interfaces
@@ -434,7 +443,8 @@ sudo ip netns exec device2 curl 10.0.0.1:8000/about.md
 J1939 is a set of standards defined by SAE. SAE is used for heavy-duty vehicles
 such as trucks and buses, mobile hydraulics. Substandards of SAE J1939 includes
 
-- J1939: recommended practice for a serial control & communication vehicle network
+- J1939: recommended practice for a serial control & communication vehicle
+  network
 - J1939/11: physical layer - 250k bits/s, shielded twisted pair
 - J1939/13: off-board diagnostic connector
 - J1939/21: data link layer
@@ -443,34 +453,50 @@ such as trucks and buses, mobile hydraulics. Substandards of SAE J1939 includes
 - J1939/73: application layer - diagnostics
 - J1939/81: network management
 
-J1939 messages are intended to be broadcast. However, it supports also point-to-point
-messages by including a specific destination address within the message identifier.
-J1939 uses the 29-bit identifier defined within the CAN 2.0B protocol.
+J1939 messages are intended to be broadcast. However, it supports also
+point-to-point messages by including a specific destination address within the
+message identifier. J1939 uses the 29-bit identifier defined within the CAN 2.0B
+protocol.
 
 J1939 uses 29-bit identifier defined withthe CAN 2.0B protocol
 
 ![j1939_identifier](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/j1939_message_format.drawio.png)
 
 - **Priority**: a value of 0 has the highest priority
-- **Data Page**: This bit expands the number of possible Parameter Groups that can
-  be represented by the identifier
-- **PDU Format**: determines the message that can be transmitted with a destination address or if the message is always a broadcast message.
-- **PDU Specific**: If **PDU Format** is between 0 and 239, it contains the destination address. Otherwise, if **PDU Format** is between 240 and 255, the message can only be broadcast and the **PDU Specific** contains a Group Extension, which expands the number of possible broadcast Parameter Groups that can be represented by the identifier.
+- **Data Page**: This bit expands the number of possible Parameter Groups that
+  can be represented by the identifier
+- **PDU Format**: determines the message that can be transmitted with a
+  destination address or if the message is always a broadcast message.
+- **PDU Specific**: If **PDU Format** is between 0 and 239, it contains the
+  destination address. Otherwise, if **PDU Format** is between 240 and 255, the
+  message can only be broadcast and the **PDU Specific** contains a Group
+  Extension, which expands the number of possible broadcast Parameter Groups
+  that can be represented by the identifier.
 
-Parameter Group Number (PGN) is used to refer to the value of the Reserve bit, DP, PF, and PS fields combined into a single 18 bit value.
+Parameter Group Number (PGN) is used to refer to the value of the Reserve bit,
+DP, PF, and PS fields combined into a single 18 bit value.
 
-In J1939, the Name is a 64-bit long label which gives every ECU a unique identity.
-Each device on the network will be associated with at least one Name and one Address. 
+In J1939, the Name is a 64-bit long label which gives every ECU a unique
+identity. Each device on the network will be associated with at least one Name
+and one Address.
 
-Only 254 different devices of the same type can coexist on the network due to the address limit. Address 255 is reserved as a global address for broadcast and address 254 is reserved as the "null address" used by devices that have not yet claimed an address or failed to claim an address.
+Only 254 different devices of the same type can coexist on the network due to
+the address limit. Address 255 is reserved as a global address for broadcast and
+address 254 is reserved as the "null address" used by devices that have not yet
+claimed an address or failed to claim an address.
 
 The process of claiming an address can be described in the following diagram
 
 ![j1939_address_claim](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/j1939_address_claim.drawio.png)
 
-Address claim is typically not used since devices on the network usually come with a predefined address.
+Address claim is typically not used since devices on the network usually come
+with a predefined address.
 
-In order to send data, a message must be constructed with overhead that describes the data to be sent. Messages more than 8 bytes can be sent as multi-packet messages. Multi-packet messages are tramsmitted by means of the Transport Protocol Functions defined in J1939/21. There are two ways of transmitting multi-packet:
+In order to send data, a message must be constructed with overhead that
+describes the data to be sent. Messages more than 8 bytes can be sent as
+multi-packet messages. Multi-packet messages are tramsmitted by means of the
+Transport Protocol Functions defined in J1939/21. There are two ways of
+transmitting multi-packet:
 
 - Broadcast Announcement Message (TP_NAM)
 - Connection Management (TP_CM)

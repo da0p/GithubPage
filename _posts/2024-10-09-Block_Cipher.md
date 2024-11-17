@@ -44,23 +44,26 @@ such that
 #### Note
 
 - PRP and Block Cipher are exchangable terms
-- PRP is also a PRF where X=Y (the input space and output space are the same) and is efficiently invertible
+- PRP is also a PRF where X=Y (the input space and output space are the same)
+  and is efficiently invertible
 
 ### Secure PRFs
 
-Let F: $K \times X \rightarrow Y$ be a PRF
-$Funcs[X, Y]$: the set of all functions from X to Y
+Let F: $K \times X \rightarrow Y$ be a PRF $Funcs[X, Y]$: the set of all
+functions from X to Y
 
-$S_F$ = $F(k, .)$ such that $k \in K$  and $S_F \in Funcs[X, Y]$
+$S_F$ = $F(k, .)$ such that $k \in K$ and $S_F \in Funcs[X, Y]$
 
-The meaning is that since the set of truly random PRFs is gigiantic, we need a smaller set. Therefore we define $S_F$ as a pseudo random function or PRF.
+The meaning is that since the set of truly random PRFs is gigiantic, we need a
+smaller set. Therefore we define $S_F$ as a pseudo random function or PRF.
 
-A PRF is secure if a random function in $Funcs[X, Y]$ is indistinguishable from a random function in $S_F$
+A PRF is secure if a random function in $Funcs[X, Y]$ is indistinguishable from
+a random function in $S_F$
 
 ### PRG (Pseudo-random generator)
 
-Let $F: K \times \{0, 1\}^n \rightarrow \{0, 1\}^n$ be a secure PRF.
-Then the following $G: K \rightarrow \{0, 1\}^{nt}$ is a secure PRG:
+Let $F: K \times \{0, 1\}^n \rightarrow \{0, 1\}^n$ be a secure PRF. Then the
+following $G: K \rightarrow \{0, 1\}^{nt}$ is a secure PRG:
 $$G(k) = F(k, 0) || F(k, 1) || ... || F(k, t)$$
 
 ## Feistel Network
@@ -80,12 +83,14 @@ AES is a Substitution-Permutation network
 ## Incorrect use of a PRP
 
 - Electronic Code Book (ECB) is not semantically secure
-![ECB](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/ECB.drawio.png)
+  ![ECB](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/ECB.drawio.png)
 
 ## Semantic Security for Many-Time Key
 
-- If given a PT message, the CT is always the same, then it's not secure under chosen plain-text attack
-- If a secret key is to be used multiple times, the CT must be different every time
+- If given a PT message, the CT is always the same, then it's not secure under
+  chosen plain-text attack
+- If a secret key is to be used multiple times, the CT must be different every
+  time
 
 ### Solution 1: Randomized Encryption
 
@@ -94,11 +99,12 @@ E(k, m) is a randomized algorithm
 
 - Encrypting same message twice gives different ciphertexts
 - Ciphertext must be longer than plaintext or
-$$CT_{size} = PT_{size} + randombit_{size}$$
+  $$CT_{size} = PT_{size} + randombit_{size}$$
 
 ### Solution 2: Nonce-based Encryption
 
-- **nonce n**: A value that changes from message to message. The key point is that (k, n) pair is never used more than once
+- **nonce n**: A value that changes from message to message. The key point is
+  that (k, n) pair is never used more than once
 
 ![Nonce-based-Encryption](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/Nonce-based-Encryption.drawio.png)
 
@@ -126,10 +132,13 @@ $E_{CBC}(k, m)$: choose random IV $in$ X and do:
 
 ### Note: Padding in CBC
 
-- If the last message is shorter than the the block length, a pad is needed. Let's suppose we need to pad 5 bytes, then we put 5 bytes with value 5. The decryptor will look at the last byte and remove
-- If no pad is needed, still need a dummy block 16 bytes with value 16. The decryptor will remove that dummy block
+- If the last message is shorter than the the block length, a pad is needed.
+  Let's suppose we need to pad 5 bytes, then we put 5 bytes with value 5. The
+  decryptor will look at the last byte and remove
+- If no pad is needed, still need a dummy block 16 bytes with value 16. The
+  decryptor will remove that dummy block
 
 #### Construction 2: Random Counter-Mode and Nonce Counter-Mode
 
 - Counter mode can be computed in parallel, not like CBC mode
-![CBC-IV-Encryption](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/Random-CTR.drawio.png)
+  ![CBC-IV-Encryption](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/Random-CTR.drawio.png)
