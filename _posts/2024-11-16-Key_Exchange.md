@@ -150,3 +150,54 @@ Then
 $\forall x \in (Z_N)^*$: $x^{\varphi(N)} = 1$ in $Z_N$
 
 Note that generalization of Fermat is the basis of the RSA cryptosystem
+
+### Modular e'th Roots
+
+Easy case: e is relatively prime to p-1
+
+Suppose $gcd(e, p-1) = 1$, then $\forall c \in (Z_p)^*: \exist \space c^{1/e}$
+in $Z_p$
+
+Case: $e = 2$
+
+If p is an odd prime, then $gcd(2, p-1) \neq 1$. We have the following
+definition:
+
+x in $Z_p$ is a **quadratic residue** if it has a square root in $Z_p$. p is an
+odd prime, the number of **quadratic residue** in $Z_p$ is $(p - 1)/2 + 1$
+
+### Euler's Theorem
+
+Given a number x in $(Z_p)^*$, x is a quadratic residue if and only if
+$x^{(p-1)/2}=1$ in $Z_p$
+
+Note that: $x \neq 0$, then $x^{(p-1)/2} = (x^{p-1})^(1/2) \in \{1, -1\}$ in
+$Z_p$
+
+$x^{(p-1)/2}$ is called the **Legendre Symbol** of x over p
+
+In order to compute square roots mod p
+
+Suppose p = 3 (mod 4), then $c \in Z_p^*$ is a **quadratic residue**, then
+$\sqrt{c} = c^{(p+1)/4}$ in $Z_p$
+
+When p = 1 (mod 4), no deterministic algorithm until now, but there exists a
+randomized algorithm to compute it efficiently with run time $O(log^3(p))$
+
+### Quadratic Equations mod p
+
+Given $a.x^2 + b.x + c = 0$ in $Z_p$. We have
+
+$x = (-b +- \sqrt{b^2 - 4.a.c}) / 2a$ in $Z_p$
+
+- Find $(2a)^-1$ in $Z_p$ using extended Euclid
+
+- Find square root of $b^2 - 4.a.c$ in $Z_p$ (if one exists) using a square root
+  algorithm
+
+### Computing e'th roots mod N
+
+If N is a composite number and e > 1, in order to compute $c^{1/e}$ efficiently
+in $Z_N$ if it exists, it's a hard problem and requires factorization of N
+
+### Arithmetic Algorithm
