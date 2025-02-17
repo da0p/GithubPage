@@ -75,3 +75,50 @@ date: 2025-02-16
   empty response, hence reducing interframe spacing
 - Connection interval is the time between two data transfer events between the
   central and the peripheral device
+
+## GAP and GATT
+
+- **GAP (Generic Access Profile):** defines the **device discovery and
+  connections** of the BLE network stack
+- **GATT (Generic Attribute Profile):** manages how attributes (data) are
+  transferred once devices have a dedicated connection. **GATT** specifically
+  focuses on how data is formatted, packaged, and sent according to its
+  described rules.
+
+![BLE Stack](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/ble_stack_review.drawio.png)
+
+## BLE Advertisement
+
+- Broadcast data without the need of connection
+- To connect and exchange data
+
+### Channels
+
+- 37 data channels
+- 3 primary advertising channels
+- Extended advertising channels (5.0)
+- The primary advertising channels are selected for avoiding interference with
+  WiFi
+- Advertising simultaneously on 3 channels
+
+### Parameters
+
+- Advertising interval: 20ms - 10.24 s
+
+### Scanner
+
+Two important parameters: scan interval and scan window.
+
+- Active scanning
+- Passive scanning
+
+![BLE Advertisement](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/ble_advertisement.drawio.png)
+
+### Advertisement Types
+
+| Type            | Connectable | Scannable | Directed |
+| --------------- | ----------- | --------- | -------- |
+| ADV_IND         | y           | y         | n        |
+| ADV_DIRECT_IND  | y           | n         | y        |
+| ADV_NONCONN_IND | n           | n         | n        |
+| ADV_SCAN_IND    | n           | y         | n        |
