@@ -57,7 +57,7 @@ date: 2025-02-16
 
 ### PHY Configuration
 
-- THY is set after a connection by examining the capabilities and configuration
+- PHY is set after a connection by examining the capabilities and configuration
   for both devices in a procedure that is known as the PHY Update Procedure.
 - Master or slave can initiate the procedure, but the master has the final
   decision
@@ -69,12 +69,29 @@ date: 2025-02-16
   event length
 - Even though time to transmit is reduced by half, but the interframe spacing
   time is kept the same. Thefore, more time devoted to interframe spacing
-- Connectin event length is another factor. TX - RX exchanges must fit within
+- Connecting event length is another factor. TX - RX exchanges must fit within
   the event length duration.
 - Duplex communication can also increase throughput since it eliminates the
   empty response, hence reducing interframe spacing
 - Connection interval is the time between two data transfer events between the
   central and the peripheral device
+
+### Remarks on Data Throughput
+
+Data rate is much lower than the radio data rate due to the following factors:
+
+- **Gaps in between packets:** 150 microseconds between packets being
+  transmitted as a requirement for adhering to the specification. This gap is
+  time lost with no data being exchanged between two devices.
+- **Packet overhead:** All packets include header information and data handled
+  at levels lower than the application level, which count towards the data being
+  transmitted but are not part of the data utilized by your application.
+- **Slave data packets requirement:** The requirement to send back data packets
+  from the slave, even when no data needs to be sent back and empty packets are
+  sent.
+- **Retransmission of data packets:** In the case of packet loss or interference
+  from devices in the surrounding environment, the lost or corrupted data
+  packets get resent by the sender.
 
 ## GAP and GATT
 
@@ -122,3 +139,38 @@ Two important parameters: scan interval and scan window.
 | ADV_DIRECT_IND  | y           | n         | y        |
 | ADV_NONCONN_IND | n           | n         | n        |
 | ADV_SCAN_IND    | n           | y         | n        |
+
+## Filter Policy
+
+There are three types of policy
+
+- Advertising
+- Scanning
+- Initiator
+
+### Adversiting Filter Policy
+
+Filter scan and connection requests. There are 4 available modes that can be
+configured by the host
+
+| Scan Request | Connection Request | Modes           |
+| ------------ | ------------------ | --------------- |
+| n            | n                  | Default         |
+| y            | y                  | Only Scan       |
+| n            | y                  | Only Connection |
+| y            | y                  | Both            |
+
+### Scanner Filter Policy
+
+Filter advertising & scan Response PDUs. There are 2 available modes that can be
+configured by the host
+
+| Adv PDU | Scan Request | Modes              |
+| ------- | ------------ | ------------------ |
+| n       | n            | Unfiltered Default |
+| y       | y            | Filtered           |
+
+### Initiator Filter Policy
+
+Filter Connectable Advertising PDUs. There are 2 available modes. Requests from
+devices not in the white list or not specified by host are ignored
