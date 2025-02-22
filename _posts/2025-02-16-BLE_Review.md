@@ -174,3 +174,40 @@ configured by the host
 
 Filter Connectable Advertising PDUs. There are 2 available modes. Requests from
 devices not in the white list or not specified by host are ignored
+
+## Bluetooth Address
+
+Bluetooth devices are identified by a 48-bit address, similar to a MAC address.
+Two main types of addresses: public addresses and random addresses.
+
+### Public Address
+
+- A fixed address that does not change and is factory-programmed
+- Must be registered with the IEEE
+
+### Random Address
+
+- More popular since no need to register with IEEE
+- Programmed on the device or generated at runtime
+- Two sub-types: static address and private address
+
+#### Static Address
+
+- Used as a replacement for public addresses
+- Can be generated at boot up or stay the same during lifetime
+- Cannot change until a power-cycle
+
+#### Private Address
+
+Two sub-types: non-resolvable and resolvable private address
+
+##### Non-resolvable Private Address
+
+- Random, temporary for a certain time, but not common
+
+##### Resolvable Private Address
+
+- Used for privacy
+- Generated using Identity Resolving Key (IRK) and a random number
+- Changes periodically to avoid being tracked by unknown scanners
+- Trusted devices (or bonded) can resolve it using the previously stored IRK
