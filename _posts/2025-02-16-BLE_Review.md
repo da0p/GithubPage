@@ -140,13 +140,27 @@ Two important parameters: scan interval and scan window.
 | ADV_NONCONN_IND | n           | n         | n        |
 | ADV_SCAN_IND    | n           | y         | n        |
 
+### Advertising Parameters
+
+- Advertising intervals: from 20 milliseconds up to 10.24 seconds in small
+  increments of 625 microseconds
+
+- Advertising/Scan Response Data: Follows TLV used in data communication
+  (Type-Length-Value), except length comes before
+  ![BLE Advertising Parameters](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/advertising_parameters.drawio.png)
+
 ## Filter Policy
 
 There are three types of policy
 
-- Advertising
-- Scanning
-- Initiator
+- Advertising (peripheral side)
+- Scanning (central side)
+- Initiator (central side)
+
+Device filtering gets processed at the link layer in the controller (the lower
+layer of the Bluetooth stack), which saves time and overhead from being
+performed at the host (the upper layer of the stack). However, the host is
+responsible for configuring the white list.
 
 ### Adversiting Filter Policy
 
@@ -211,3 +225,43 @@ Two sub-types: non-resolvable and resolvable private address
 - Generated using Identity Resolving Key (IRK) and a random number
 - Changes periodically to avoid being tracked by unknown scanners
 - Trusted devices (or bonded) can resolve it using the previously stored IRK
+
+## Connection
+
+Note that after a connection is established, the central becomes the master, and
+the peripheral becomes the slave
+
+![BLE Connections](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/ble_connections.drawio.png)
+
+### Connection Events
+
+- During a connection event, the master and slave exchange data packets until
+  neither side has more data left to send
+- A connection event occurs periodically and continuously until the connection
+  is closed or lost
+- A connection event contains at least one packet sent by the master
+- If the master does not receive a packet back from the slave, the master will
+  close the connection event and it resumes sending packets at the next
+  connection event
+- The connection event can be closed by either side
+- The starting points of consecutive connection events are spaced by a period of
+  time called the connection interval
+
+### Connection Parameters
+
+- **Connection interval:** 7.5 milliseconds - 4.0 seconds in increments of 1.25
+  milliseconds. The central may take into account the _Peripheral Preferred
+  Connection Parameters (PPCP)_, which is a way for the peripheral to informt he
+  central of a set of parameters that it prefers.
+- **Slave Latency:** allows the peripheral to skip a number of consecutive
+  connection events and not listen to the central at these connection events
+  without compromising the connection.
+- **Supervision Timeout:** Detect a loss in connection.
+- **Data Length Extension (DLE):** can be enabled or disabled. It allows the
+  packet size to hold a larger amount of payload (up to 251 bytes vs. 27 bytes
+  when disabled). This feature was introduced in 4.2 reducing the packet
+  overhead and any unnecessary header data that gets transmitted with smaller
+  packets.
+- **Maximum Transmission Unit (MTU):** define the maximum size of a PDO that can
+  be sent by a specific protocol. The **Attribute MTU** is the largest size of
+  an ATT payload that can be sent between a client and a server.
