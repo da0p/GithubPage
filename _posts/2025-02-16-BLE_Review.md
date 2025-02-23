@@ -265,3 +265,133 @@ the peripheral becomes the slave
 - **Maximum Transmission Unit (MTU):** define the maximum size of a PDO that can
   be sent by a specific protocol. The **Attribute MTU** is the largest size of
   an ATT payload that can be sent between a client and a server.
+
+## Services and Characteristics
+
+- **Generic Attribute Profile (GATT)** only comes into play after a connection
+  has been established between two BLE devices.
+
+### Attribute Protocol (ATT)
+
+ATT defines how a server exposes its data to a client and how this data is
+structured. Two roles within the ATT:
+
+- **Server:** This is the device that exposes the data it controls or contains.
+  It accepts incoming commands from a peer device, and sends **responses**,
+  **notifications**, and **indications**.
+- **Client:** This is the device that interfaces with the server with the
+  purpose of reading the server's exposed data and/or controlling the server's
+  behavior. It is the device that sends commands and requests and aceepts
+  incoming notifications and indications.
+
+The data that the server exposes is structured as **attributes**. An attribute
+is the generic term for any type of data exposed by the server and defines the
+structure of this data. Services and characteristics are types of attributes.
+Attributes are made up of the following: **atribute type**, **atribute handle**,
+**attribute permissions**
+
+- **Atrribute Type (Universally Unique Identifier or UUID):** This is a 16-bit
+  number for Bluetooth SIG-adopted attributes, or 128-bit number for custom
+  attribute types
+- **Attribute Handle:** A 16-bit value that the server assigns to each of its
+  attributes. It is considered as an address that the client can use to
+  reference a specific attribute, and is guaranteed by the server to uniquely
+  identify the attribute during the life of the connection between two devices.
+  The range of handles if 0x0001 - 0xFFFF, there the value of 0x0000 is
+  reserved.
+- **Attribute Permissions:** Permissions determine whether an attribute can be
+  _read_ or _written_ to, whether it can be _notified_ or _indicated_, and what
+  _security levels_ are required for each of these operations. These permissions
+  are not defined or discovered via the _Attribute Protocol (ATT)_, but rather
+  defined at a higher layer (GATT layer or Application layer).
+
+### Generic Attribute Profile (GATT)
+
+- **Services**, **characteristics**, and **profiles** are used specifically to
+  allow hierarchy in the structuring of the data exposed by the server.
+- GATT defines the format of services and their characterisrics, and the
+  procedures that are used to interface with these attributes such as service
+  discovery, characteristic reads, characteristic writes, notifications, and
+  indications.
+- GATT takes on the same roles as the Attribute Protocol (ATT). The roles are
+  not set per device, but per transaction.
+- A service can refer to another service. The main service is called **primary
+  service** representing the primary functionality of a device, while the
+  referred one is called \*secondary service\*\* providing auxiliary
+  functionality of a device.
+
+![BLE Services](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/ble_services.drawio.png)
+
+### Characteristics
+
+A **characteristic** is always part of a service and it represents a piece of
+information/data that a server wants to expose to a client.
+
+- **Properties:** represented by a number of bits and which defines how a
+  characteristic value can be used including _read_, _write_, _write without
+  response_, _notify_, _indicate_.
+- **Descriptors:** used to contain related information about the characteristic
+  value inlcuding _extended properties_, _user description_, fields used for
+  subscribing to notifications and indications, and a field that defines the
+  presentation of the value such as the format and the unit of the value.
+
+## Profiles
+
+- Profiles are much broader in definition than services. They includes defining
+  the behavior of both the client and server when it comes to services,
+  characteristics, and even connections and security requirements. Services and
+  their specifications, on the other hand, deal with the implementation of these
+  services and characteristics on the server side only.
+- There are SIG-adopted profiles that have published specifications.
+
+## Attribute Operations
+
+Six different types of attribute operations including
+
+- **Commands:** sent by the client to the server and do not require a response
+- **Requests:** sent by the client to the server and require a response. Two
+  types of requests:
+  - Find Information Request
+  - Read Request
+- **Responses:** sent by the server in response to a request
+- **Notifications:** sent by the server to the client to let the client know
+  that a specific characteristic value has changed. In order for this to be
+  triggered and sent by the server, the client has to enable notifications for
+  the characteristic of interest. Note that a notification does not require a
+  response from the client to acknowledge its receipt
+- **Indications:** sent by the server to the client. They are very similar to
+  notifications, but require an acknowledgment to be sent back from the client
+  to let the server know that the indication was successfully received.
+- **Confirmations:** sent by the client to the server. These are the
+  acknowledgment packets sent back to the server to let it know that the client
+  successfully received an indication
+
+Note that **notifications** and **indications** are exposed via the **Client
+Characteristic Configuration Descriptor (CCCD)** attribue. Writing a "1" to this
+attribute value enables notifications, whereas writing a "2" enables
+indications. Writing a "0" disables both notifications and indications.
+
+### Reading Attributes
+
+**Reads** are **requests** by nature since they require a response. There are
+four different types of reads. Two most important ones are:
+
+- **Read Request:** a simple request referencing the attribute to be read by its
+  **handle**
+- **Read Blob Request:** similar to the read request but adds an offset to
+  indicate where the read should start, returning a portion of the value. This
+  type of read is used for reading only part of a characteristic's value
+
+### Writing to Attributes
+
+**Writes** can be either commands or requests.
+
+- **Write Request:** requires a response from the server to acknowledge that the
+  attribute has been successfully written to
+- **Write Command:** this has no response from the server
+- **Queued Writes (atomic opereation behavior):** Used when a large value needs
+  to be written and does not fit within a single message. Two steps are involved
+  - Prepare values request, send them to the server, the server will buffer the
+    prepared values
+  - Execute write request, used to request from the server to either execute or
+    cancel the write operation of the prepared values
