@@ -17,8 +17,7 @@ date: 2025-02-16
 - Can be used now as a device positioning technology to address the increasing
   demand for high accuracy indoor location services
 
-<!-- prettier-ignore -->
-|                          | Bluetooth Low Energy                                                                                              | Bluetooth Classic                                                                  |
+| Characteristics          | Bluetooth Low Energy                                                                                              | Bluetooth Classic                                                                  |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | Frequency Band           | 2.4 GHZ ISM (2.402 - 2.480 GHz)                                                                                   | 2.4GHz ISM (2.402 - 2.480 GHz)                                                     |
 | Channels                 | 40 channels with 2 Mhz spacing <br>(3 advertising channels)                                                       | 79 channels with 1 MHz spacing                                                     |
@@ -434,3 +433,182 @@ four different types of reads. Two most important ones are:
     prepared values
   - Execute write request, used to request from the server to either execute or
     cancel the write operation of the prepared values
+
+## Security
+
+Security in BLE is handled by the **security manager (SM)** layer of the
+architecture. The security manager defines the protocols and algorithms for
+generating and exchanging keys between two devices. It involves five security
+features:
+
+- **Pairing:** the process of creating shared **secret keys** between two
+  devices
+- **Bonding:** the process of creating and storing shared **secret keys** on
+  each side (central and peripheral) for use in subsequent connections between
+  the devices.
+- **Authentication:** the process of verifying that the two devices share the
+  same secret keys.
+- **Encryption:** the process of encrypting the data exchanged between the
+  devices. Encryption in BLE uses the 128-bit AES Encryption standard, which is
+  a **symmetric-key** algorithm (meaning that the same key is used to encrypt
+  and decrypt the data on both sides).
+- **Message Integrity:** the process of signing the data, and verifying the
+  signature at the other end. This goes beyond the simple integrity check of a
+  calculated CRC.
+
+In version 4.2, the concept of **LE Secure Connections (LESC)** is introduced,
+which makes the communication much more secure compared to the methods used in
+earlier version of Bluetooth.
+
+The Security Manager addresses the different security concerns as follows:
+
+- **Confidentiality** via encryption
+- **Authentication** via pairing & bonding
+- **Privacy** via resolvable private addresses
+- **Integrity** via digital signatures
+
+In BLE, the master device is the **initiator** of security procedures. The slave
+(**responder**) may request the start of a security procedure by sending a
+security request message to the master, but it is up to the master to then send
+the packet that officially starts the security process.
+
+![BLE Security](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/ble_security.drawio.png)
+
+**Pairing** is the combination of Phases 1 and 2. **Bonding** is represented by
+Phase 3 of the process. One important thing to note is that Phase 2 is the only
+phase that differs between LE Legacy Connections and LE Secure Connections.
+
+### Pairing and Bonding
+
+Note that pairing is a temporary security measure that does not persist across
+connections. It has to be initiated and completed each time the two devices
+reconnect and would like to encrypt the connection between them. In order to
+extend the encryption across subsequent connections, bonding must occur between
+the two devices.
+
+#### Phase One
+
+- The slave may request the start of the pairing process
+- The master initiates the pairing process by sending a **pairing request**
+  message to the slave, which then responds with a **pairing response** message.
+- The pairing request and pairing response messages represent an exchange of the
+  features supported by each device, as well as the security requirements for
+  each device. Each of these messages include the following:
+  - **Input Output (IO) capabilities:** display support, keyboard support,
+    yes/no input support
+  - **Out-Of-Band (OOB)** method support
+  - **Authentication requirements:** includes MITM protection requirement,
+    bonding requirement, secure connections support
+  - **Maximum encryption key size** that the device supports
+  - The different **security keys** each device is requesting to use
+
+The information exchanged between the two devices in this phase determines the
+pairing method used.
+
+#### Phase Two
+
+**Phase two** differs based on which method is used: **LE secure connections**
+or **LE legacy connections**.
+
+- **Legacy Connections:** In **legacy connections**, there are two keys used:
+  the **temporary key (TK)** and the **short term key (STK)**. The TK is used
+  along with other values exchanged between the two devices to generate the STK.
+
+- **Secure Connections:** in **secure connections**, the pairing method does not
+  involve exchanging keys over the air between the two devices. Rather, the
+  devices utilize the ECDH protocol to each generate a **public/private key**
+  pair. The devices then exchange the public keys only, and from that generate a
+  shared secret key called the **long term key (LTK)**
+
+#### Phase Three
+
+**Phase three** represents the **bonding** process. This is an optional phase
+that's utilized to avoid the need to re-pair on every connection to enable a
+secure communication channel.
+
+The result of bonding is that each devices stores a set of keys that can be used
+in each subsequent connection and allows the devices to skip the pairing phase.
+These keys are exchanged between the two devices over a link that's encrypted
+using the keys resulting from phase two.
+
+### Pairing Methods
+
+Legacy Connections and Secure Connections each have different Pairing Methods.
+Some of the methods share the same name, but the process and the data exchanged
+differs among them.
+
+#### LE Legacy Connections
+
+- **Just Works:** TK is set to 0. Least secure of all methods
+- **Out of Band (OOB):** The TK is exchanged between the two devices over a
+  technology other than BLE - **near field communication (NFC)** being the main
+  one.
+- **Passkey:** TK is a six-digit number that is transferred between the devices
+  by the end-user.
+
+##### LE Secure Connections
+
+- **Just Works:** the **public keys** for each device along with other generated
+  values get exchanged between the two devices over BLE.
+- **Out of Band (OOB):** the values are exchanged over a medium other than BLE.
+  If the used medium is secure, then this makes the connection more secure.
+- **Passkey:** an identical six-digit number is used. The six-digit number could
+  either be entered by the user into each device, or one of the devices will
+  generate it for the user to manually enter it into the other deivce.
+- **Numeric Comparison:** Works the same as the **just works** method described
+  above but adds an extra step at the end. This extra step allows protection
+  from MITM attacks. This is the most secure pairing method of all methods.
+
+### Privacy
+
+- BLE provides a privacy feature to safeguard against users tracking. A device
+  can use a frequenly changing private address for its Bluetooth address that
+  only trusted devices can resolve.
+- A trusted device in this case is a bonded device. The random private address
+  is generated using a key called the **identity resolving key (IRK)**, which is
+  exchanged between two bonded devices during phase three. This way, the peer
+  device has access to the IRK and can resolve the random address.
+
+### Different Security Keys
+
+- **Temporary Key (TK):** Generation of the temporary key (TK) depends on the
+  pairing method chosent. The TK is generated each time the pairing process
+  occurs. TK is used in legacy connections only.
+- **Short Term Key (STK):** Generated from the TK exchanged between the devices.
+- **Long Term Key (LTK):** Generated and stored during phase three of the
+  security process in legacy connections and during phase two in LE secure
+  connections. It gets stored on each of the two devices that are bonded, and
+  used in subsequent connections between the two devices.
+- **Encrypted Diversifier (EDIV) and Random Number (Rand):** Two values are used
+  to created and identify the LTK, stored during the bonding process.
+- **Connection Signature Resolving Key (CSRK):** Used to sign data and verify
+  the signature attached to the data at the other end. This key is stored on
+  each of the two bonded devices.
+- **Identiy Resolving Key (IRK):** Used to resolve random private addresses.
+  This key is unique per device, so the master's IRK will get stored on the
+  slave side, and the slave's IRK will be stored on the master side.
+
+### Security Modes and Levels
+
+Two security modes in BLE: **Security mode 1** and **security mode 2**. Security
+mode 1 is concerned with encryption whereas security mode 2 is concerned with
+data signing.
+
+#### Security Mode 1
+
+- **Level 1:** No security (no authentication and no encryption)
+- **Level 2:** Unauthenticated pairing with encryption
+- **Level 3:** Authenticated pairing with encryption
+- **Level 4:** Authenticated LE secure connections pairing with encryption
+
+#### Security Mode 2
+
+- **Level 1:** Unauthenticated pairing wiht data signing
+- **Level 2:** Authenticated pairing with data signing
+
+A link is considered **authenticated** or **unauthenticated** based on the
+pairing method used.
+
+A link between two devices operates in one security mode only but can operate at
+different levels within that mode (different characteristics may require
+different levels of security)
