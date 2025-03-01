@@ -17,6 +17,7 @@ date: 2025-02-16
 - Can be used now as a device positioning technology to address the increasing
   demand for high accuracy indoor location services
 
+<!-- prettier-ignore -->
 |                          | Bluetooth Low Energy                                                                                              | Bluetooth Classic                                                                  |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | Frequency Band           | 2.4 GHZ ISM (2.402 - 2.480 GHz)                                                                                   | 2.4GHz ISM (2.402 - 2.480 GHz)                                                     |
@@ -40,10 +41,18 @@ date: 2025-02-16
 ### Coded PHY
 
 - A new PHY configuration introduced in 5.0.
-- Increase maximum range without increasing transmit power. Coded PHY provides
-  enhanced bit error detection and correction, allowing further range while
-  staying within the maximum BER. This is achieved at a cost to data rate, as it
-  increases the number of symbols per bit.
+- Increase maximum range without increasing transmit power (4 time range). Coded
+  PHY provides enhanced bit error detection and correction (**Forward Error
+  Correction**), allowing further range while staying within the maximum BER.
+  This is achieved at a cost to data rate, as it increases the number of symbols
+  per bit.
+- **Trade-offs**:
+  - **Higher power consumption:** since transmitting multiple symbols to
+    represent one bit of data, resulting in longer radio-on time to transmit the
+    same amout of data
+  - **Reduced speeds:** due to the fact that more bits are needed to transmit
+    the same amount of data (125 kbps or 500 kbps, depending on the **coding
+    scheme** used)
 
 ### 2M PHY
 
@@ -52,8 +61,19 @@ date: 2025-02-16
   symbols per second, where each symbol corresponds to a single bit. This allows
   a user to double the number of bits sent over the air during a given period,
   or conversely reduce energy consumption for a given amount of data by halving
-  the ncessary transmit time.
+  the necessary transmit time.
 - Reduced range compared to Coded PHY
+- Improvement of wireless coexistence because of the decreased radio-on time
+- **Restrictions:** 2M PHY is not allowed in primary advertisements. Two ways to
+  utilize this mode:
+  - Secondary advertisements (**extended advertising mode**) are used and sent
+    on the 2M PHY, which allow a connection on that PHY from the central device.
+  - Advertising on the primary or secondary channels using the 1M or the coded
+    PHY. A connection is then established, and either side can request a PHY
+    update to use the 2M PHY during the connection
+- Link between a central and a peripheral can be asymmetric, meaning that the
+  packets from the peripheral can be sent using the 1M PHY while packets from
+  the central can be sent using the 2M PHY
 
 ### PHY Configuration
 
@@ -148,6 +168,25 @@ Two important parameters: scan interval and scan window.
 - Advertising/Scan Response Data: Follows TLV used in data communication
   (Type-Length-Value), except length comes before
   ![BLE Advertising Parameters](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/advertising_parameters.drawio.png)
+
+### Extended Advertisements
+
+- **Secondary advertising channels** concept is introduced in Bluetooth 5, which
+  allows the device to offload data to advertise more data than what's allowed
+  on the primary advertisement channels.
+- Advertisement packets sent on the secondary advertisement channels can use any
+  of three PHYs (1M PHY, 2M PHY, or coded PHY), whereas the primary
+  advertisement channels can only use the coded PHY or the original 1M PHY
+- A central should use 1M PHY or coded PHY when initially searching for
+  peripherals that are sending out advertising packets.
+
+### Periodic Advertisements
+
+- A special case of **extended advertisements** and allow a central to
+  "synchronize" to a peripheral that is sending these extended advertisements at
+  a fixed interval
+- Periodic advertisements are transmitted on the primary channels, which hold
+  information to help locate the extended advertisement packet.
 
 ## Filter Policy
 
