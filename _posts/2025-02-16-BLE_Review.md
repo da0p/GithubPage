@@ -612,3 +612,257 @@ pairing method used.
 A link between two devices operates in one security mode only but can operate at
 different levels within that mode (different characteristics may require
 different levels of security)
+
+## Bluetooth Mesh
+
+The goal of Bluetooth mesh is to increase the range of BLE networks and add
+support for more industrial applications that utilize BLE technology.
+
+Two main benefits of a mesh network:
+
+- **Extended Range:** Nodes can relay messages to far-away nodes via the nodes
+  in between them, this allows a network to extend its ranges and expand the
+  reach of devices
+- **Self-healing capabilities:** _self-healing_ refers to the fact that there is
+  no single point of failure. If a node drops from the mesh network, the other
+  nodes can still participate and send messages to one another.
+
+### Architecture of Bluetooth Mesh
+
+![BLE Mesh Stack](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/bluetooth_mesh_stack.drawio.png)
+
+#### Nodes
+
+Devices that are part of a Bluetooth mesh network are called **nodes**. Devices
+that are not part of the network are called **unprovisioned** devices. Once an
+unprovisioned device gets provisioned, it joins the network and becomes a
+**node**.
+
+#### Elements
+
+A **node** may contain multiple parts which can be controlled independently.
+These different parts of a single node are referred to as **elements**.
+
+#### States
+
+Elements can be in various conditions, represented by **state** values. A change
+from one state to another is called a **state transition**. A **transition
+period** is the time to transit from one state to another.
+
+#### Properties
+
+Properties add some context to a state value. There are two types of properties:
+
+- **Manufacturer property:** provides read-only access
+- **Admin property:** provides read-write access
+
+#### Messages
+
+All communications in Bluetooth mesh are message-oriented, and nodes send
+messages to control or relay information to each other.
+
+There are three types of messages in Bluetooth mesh:
+
+- **GET** message: a message to request the state from one or more nodes
+- **SET** message: a message to change the value of a given state
+- **STATUS** message: a status message is used in different scenarios
+  - Sent in response to a GET message, containing the state value
+  - Sent in response to an acknowledged SET message
+  - Sent independently of any message to report the element's status
+
+#### Addresses
+
+Messages in a Bluetooth mesh network must be sent to and from an address. There
+are three types of addresses:
+
+- **Unicast Address:** an address that uniquely identifies a single node
+  assigned during the **provisioning process**
+- **Group Address:** an address used to identify a group of nodes. A **group
+  address** usually reflects a physical grouping of nodes such as all nodes
+  within a specific room
+  - SIG-Fixed Group Address: All-proxies, All-friends, and All-nodes group
+    addresses
+  - Dynamic Group Address, which is defined by the user via a configuration
+    application
+- **Virtual Address:** an address that may be assigned to one or more elements,
+  spanning one or more nodes. This is like a lable with 128-bit UUID
+
+#### Publish-Subscribe
+
+The way messages are exchanged in a Bluetooth mesh network is via the
+**publish-subscribe** pattern. Typically, messages are addressed to **group** or
+**virtual addresses**.
+
+![BLE Mesh Networking](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/bluetooth_mesh_networking.drawio.png)
+
+#### Managed Flooding
+
+This technique is used in order to avoid flood the network with messages.
+Managed flooding relies on broadcasting messages to all nodes within range of
+the sender node, with a few added optimizations:
+
+- **Messages have a TTL assigned:** limits the number of hops a message can take
+  across multiple nodes within the mesh network.
+- **Messages are cached:** required by all nodes and requires that messages
+  received that already exist in the cache get immediately discarded.
+- **Heartbeat messages are sent periodically:** used to indicate to other nodes
+  that the sender is alive and active within the network.
+- **Friendship:** refers to the relationship between two nodes. Two node types
+  are:
+  - A _low-power node_, or LPN, conserves power and it not able to receive mesh
+    messages all the time. This node spends most its time with the radio turned
+    off.
+  - A live-powered node called the _friend node_, which can serve as a proxy for
+    the LPN. The friend node caches messages for the LPN to save power, so that
+    the LPN can stay asleep most of the time and only wake up occasionally. When
+    the LPN wakes up, it polls the friend node to read the cached messages and
+    sends any messages it needs to send to the mesh network.
+
+#### Models
+
+A model defines some or all functionality of a given element. There are three
+categories:
+
+- **Server model:** a collection of states, state transitions, state bindings,
+  and messages which an element containing the model may send or receive
+- **Client model:** does not define any state, rather, it defines only messages
+  such as GET, SET, and STATUS messages sent to a server model.
+- **Control model:** contains both a server and client model allowing
+  communication with other server and client models.
+
+#### Scenes
+
+A scene is a stored collection of states and is identified by a 16-but number
+which is unique within the mesh network. Scenes allow triggering one action to
+set multiple states of different nodes. They can be triggered on-demand or at a
+specified time.
+
+### Node Types
+
+Four types of nodes with optional features enabled:
+
+- Relay Nodes
+- Proxy Nodes
+- Friend Nodes
+- Low power nodes
+
+#### Relay Nodes
+
+A relay node is one that supports the relay feature
+
+#### Proxy Nodes
+
+A proxy node allows communication with a mesh network from a non-mesh-supported
+BLE device. A proxy node acts as an intermediary and utilizes GATT operations to
+allow other nodes outside of the mesh network to interface and interact with the
+network.
+
+![Proxy Node](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/proxy_nodes.drawio.png)
+
+The protocol used in this case is called the **proxy protocol**, which is
+intended to be used with a connection-enabled device (using GATT). The protocol
+is built on top of GATT and allows a device to read and write proxy protocol
+PDUs from GATT characteristics exposed by the proxy node. The proxy node
+performs the translation between proxy protocol PDUs and mesh PDUs.
+
+#### Friend Nodes and Low Power Nodes
+
+A _friend node_ and a _low power node (LPN)_ are closely related to each other.
+In fact, in order for a low power node to participate in a Bluetooth mesh
+network, it requires a _friendship_ relationship with another node, called the
+**friend node**.
+
+- Low power nodes usually have limited power supply such as batteries
+- Low power nodes may want to send messages more than receiving them
+- A friend node lets low power nodes stay asleep longer
+- Friend nodes cache messages for low power nodes
+
+### Provisioning Process
+
+It is used for adding devices to the mesh network. The device used to add a node
+to the network is called the **provisioner**.
+
+#### Step 1: Beaconing
+
+In this step, unprovisioned devices announces its availability to be provisioned
+by sending the _mesh beacon_ advertisements in the advertisement packets. This
+is a new type of advertisement data type introduced in the Bluetooth mesh
+standard.
+
+#### Step 2: Invitation
+
+When the provisioner discovers the unprovisioned device via the beacons that
+were sent, it sends an **invitation** to this unprovisioned device. This uses a
+new type of PDU introduced in Bluetooth mesh called the **provisioning invite
+PDU**. The unprovisioned device then responds with information about its
+capabilities in a **provisioning capabilities PDU**
+
+#### Step 3: Public Key Exchange
+
+Security in Bluetooth mesh involves the use of a combination of symmetric and
+asymmetric keys such as the Elliptic-curve Diffie-Hellman (ECDH) algorithm.
+
+#### Step 4: Authentication
+
+The next step is to **authenticate** the unprovisioned device. This usually
+requires an action by the user by interacting with both the provisioner and the
+unprovisioned device. The authentication method depends on the capabilities of
+both devices used.
+
+#### Step 5: Provision Data Distribution
+
+After authentication is complete, each device derives a **session key** using
+their private key and the public key sent to it from the other device. The
+session key is then used to secure the connection for exchange of additional
+provisioning data, including the network key, a device key, a security parameter
+known as the IV index, and a unicast address which is assigned to the
+provisioned device by the provisioner. After this step, the unprovisioned device
+becomes known as a node.
+![Bluetooth Mesh Provision](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/bluetooth_mesh_provision.drawio.png)
+
+### Security in Bluetooth Mesh
+
+Security in Bluetooth mesh is mandatory
+
+- All mesh messages are encrypted and authenticated
+- Network security, application security, and device security are all handled
+  independently
+- Security keys can be changed during the life of the mesh network
+
+Due to the separation of security between the network, application, and device
+levels, there are three types of security keys:
+
+- **Network key (NetKey):** possession of this shared key makes the device part
+  of the network. There are two keys derived from the NetKey: the **network
+  encryption key** and the **privacy key**. Possession of the NetKey allows a
+  node to decrypt and authenticate up to the **network layer**, allowing the
+  relay of messages, but no application data decryption.
+- **Application Key (AppKey):** A key that is shared between a subset of nodes
+  within a mesh network, normally those that participate in a common
+  application.
+- **Device Key (DevKey):** This is a device-specific key that's used during the
+  provisioning process for securing communication between the unprovisioned
+  device and the provisioner.
+
+#### Node Removal
+
+This is a procedure for removal of a node where the device is added to a
+blacklist and the keys are refreshed. This process distributes new **network
+keys**, **application keys**, and other relevant data to all nodes, except those
+in the blacklist.
+
+#### Privacy
+
+A **privacy key** derived from the network key (NetKey) is used to obfuscate the
+source address to prevent the device to be tracked.
+
+#### Replay Attacks
+
+Bluetooth mesh provides protection against replay attacks by:
+
+- Utilizing a **sequence number (SEQ)**. Elements increment the SEQ value every
+  time they publish a message. A node, receiving a message from an element which
+  contains a SEQ value that's less than or equal to the one in the last valid
+  message, will discard it
+- Using an incrementing IV indeix, which is an additional value that also gets
+  validated when a message is received
