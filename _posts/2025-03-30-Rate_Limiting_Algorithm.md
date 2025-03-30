@@ -48,3 +48,37 @@ Leaking bucket algorithm takes two parameters:
 | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
 | Memory efficient given the limited queue size                                                                      | A burst of traffic fills up the queue with old requests |
 | Requests are processed at a fixed rate therefore it is suitable for use cases that a stable outflow rate is needed | Difficult to tune the parameters properly               |
+
+## Fixed Window Counter
+
+- The algorithm divides the timeline into fix-sized time windows and assign a
+  counter for each window.
+- Each request increments the counter by one.
+- Once the counter reaches the pre-defined threshold, new requests are dropped
+  until a new time window starts.
+  ![Fixed Window Counter](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/fixed_window_counter.drawio.png)
+- A major problem with this algorithm is that a burst of traffic at the edges of
+  time windows could cause more requests than allowed quota to go through
+
+| Pros                                                                              | Cons                                                                                                     |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Memory efficient                                                                  | Spike in traffic at the edges of a window could cause more requests than the allowed quote to go through |
+| Easy to understand                                                                |                                                                                                          |
+| Resetting available quota at the end of a unit time window fits certain use cases |
+
+## Sliding Window Log
+
+- In _Fixed Window Counter_, it allows more requests to go through at the edges
+  of a window. The sliding window log algorithm fixes the issue.
+- Sliding window log keeps track of request timestamps. Timestamp data is
+  usually kept in cache, such as sorted sets of Redis.
+- When a new request comes in, remove all the outdated timestamps. Outdated
+  timestamps are defined as those older than the start of the current time
+  window.
+- Add timestamp of the new request to the log.
+- If the log size is the same or lower than the allowed count, a request is
+  accepted. Otherwise, it is rejected.
+
+| Pros                                                           | Cons                                                                                                          |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| In any rolling window, requests will not exceed the rate limit | Consumes a lot of memory because even if a request is rejected, its timestamp might still be stored in memory |
