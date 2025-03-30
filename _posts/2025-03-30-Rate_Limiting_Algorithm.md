@@ -82,3 +82,20 @@ Leaking bucket algorithm takes two parameters:
 | Pros                                                           | Cons                                                                                                          |
 | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | In any rolling window, requests will not exceed the rate limit | Consumes a lot of memory because even if a request is rejected, its timestamp might still be stored in memory |
+
+## Sliding Window Counter
+
+- A hybrid approach that combines the fixed window counter and sliding window
+  log
+- Formula to calculate the considered current number of requests:
+
+$$requests_{current\_window} + requests_{previous\_window} * p$$
+
+where p: overlap percentage of the rolling window and previous window
+
+![Sliding Window Counter](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/sliding_window_counter.drawio.png)
+
+| Pros                                                                                               | Cons                                                                                                                                                               |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Smooths out spikes in traffic because the rate is based on the average rate of the previous window | Only works for not-so-strict look back window. It is an approximation of the actual rate because it assumes requests in the previous window are evenly distributed |
+| Memory efficient                                                                                   |                                                                                                                                                                    |
