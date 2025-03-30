@@ -27,3 +27,24 @@ The token bucket algorithm takes two parameters:
 | Easy to implment                                                                                       | Difficult to tune two parameters right |
 | Memory efficient                                                                                       |                                        |
 | Allows a burst of traffic for short periods. A request can go through as long as there are tokens left |                                        |
+
+## Leaking Bucket Algorithm
+
+- The leaking bucket algorithm is similar to the token bucket except that
+  requests are processed at a fixed rate. It is usually implemented with a FIFO
+  queue.
+- When a request arrives, the system checks if the queue is full. If it is not
+  full, the request is added to the queue. Otherwise, the request is dropped.
+  Requests are pulled from the queue and processed at regular intervals.
+  ![Leaking Bucket](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/leaking_bucket.drawio.png)
+
+Leaking bucket algorithm takes two parameters:
+
+- Queue size: The queue holds the requests to be processed at a fixed rate.
+- Outflow rate: it defines how many request can be processed at a fixed rate,
+  usually in seconds.
+
+| Pros                                                                                                               | Cons                                                    |
+| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| Memory efficient given the limited queue size                                                                      | A burst of traffic fills up the queue with old requests |
+| Requests are processed at a fixed rate therefore it is suitable for use cases that a stable outflow rate is needed | Difficult to tune the parameters properly               |
