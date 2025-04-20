@@ -1,5 +1,5 @@
 ---
-title: "Linux Series: File I/O"
+title: "Linux Series: Universal I/O Model"
 date: 2025-04-20
 ---
 
@@ -99,3 +99,69 @@ struct iovec {
 - These functions complete atomically
 - _writev()_ can write partially. A check for the return value is needed to see if all requested bytes were written
 - Advantage of using these functions is convenience and speed
+
+```C
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/uio.h>
+#include <fcntl.h>
+
+#include <stdio.h>
+#include <string.h>
+
+#define BUF_SIZE 5
+
+int main(int argc, char *argv[])
+{
+    int fd;
+    struct iovec iov[3];
+    char rd_buf_0[BUF_SIZE];
+    char rd_buf_1[BUF_SIZE];
+    char rd_buf_2[BUF_SIZE];
+    ssize_t numRead, totRequired;
+
+    memset(rd_buf_0, 0, BUF_SIZE);
+    memset(rd_buf_1, 0, BUF_SIZE);
+    memset(rd_buf_2, 0, BUF_SIZE);
+
+    if (argc != 2 || strcmp(argv[1], "--help") == 0) {
+        printf("Usage:\n");
+        printf("%s file\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    fd = open(argv[1], O_RDONLY);
+    if (fd == -1) {
+        printf("Error in opening file %s", argv[1]);
+        exit(EXIT_FAILURE);
+    }
+
+    totRequired = 0;
+    iov[0].iov_base = rd_buf_0; /* start address of buffer to copy*/
+    iov[0].iov_len = BUF_SIZE - 1 /* size of data to be copied*/;
+    totRequired += iov[0].iov_len;
+
+    iov[1].iov_base = rd_buf_1;
+    iov[1].iov_len = BUF_SIZE - 1;
+    totRequired += iov[1].iov_len;
+
+    iov[2].iov_base = rd_buf_2;
+    iov[2].iov_len = BUF_SIZE - 1;
+    totRequired += iov[2].iov_len;
+
+    numRead = readv(fd, iov, 3);
+    if (numRead == -1) {
+        printf("Error in readv");
+        exit(EXIT_FAILURE);
+    }
+
+    if (numRead < totRequired) {
+        printf("Read fewer bytes than requested\n");
+    }
+
+    printf("total bytes requested: %ld; bytes read: %ld\n", (long) totRequired, (long) numRead);
+    printf("rd_buf_0 = %s, rd_buf_1 = %s, rd_buf_2 = %s\n", rd_buf_0, rd_buf_1, rd_buf_2);
+
+    exit(EXIT_SUCCESS);
+}
+```
