@@ -100,7 +100,7 @@ struct iovec {
 - _writev()_ can write partially. A check for the return value is needed to see if all requested bytes were written
 - Advantage of using these functions is convenience and speed
 
-```C
+```c
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/uio.h>
