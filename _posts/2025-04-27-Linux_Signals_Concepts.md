@@ -236,3 +236,101 @@ recursively interrupts itself if a second instance of the same signal arrives wh
 executing. Because blocked signals are not queued, if any of these signals are repeatedly generated
 during the execution of the handler, they are (later) delivered only once.
 - _sa\_flags_ is a bit mask specifying various options controlling how the signal is handled
+
+```cpp
+#include <array>
+#include <bits/types/sig_atomic_t.h>
+#include <chrono>
+#include <csignal>
+#include <cstdint>
+#include <cstdlib>
+#include <iostream>
+
+#include <signal.h>
+#include <string>
+#include <thread>
+
+class SigReceiver {
+public:
+  SigReceiver() { setup(); }
+
+  void run(const std::string &prog, std::chrono::seconds sleepTime) {
+    std::cout << prog << ": PID is " << getpid() << "\n";
+
+    if (sleepTime != std::chrono::seconds(0)) {
+      sigset_t blockingMask;
+      sigfillset(&blockingMask);
+      if (sigprocmask(SIG_SETMASK, &blockingMask, NULL) == -1) {
+        errExit("sigprocmask");
+      }
+
+      std::cout << prog << " sleeping for " << sleepTime.count()
+                << " seconds\n";
+      std::this_thread::sleep_for(sleepTime);
+
+      sigset_t pendingMask;
+      if (sigpending(&pendingMask) == -1) {
+        errExit("sigpending");
+      }
+
+      sigset_t emptyMask;
+      sigemptyset(&emptyMask);
+      if (sigprocmask(SIG_SETMASK, &emptyMask, NULL) == -1) {
+        errExit("sigprocmask");
+      }
+    }
+
+    while (!mGotSigInt) {
+      continue;
+    }
+
+    for (int i = 1; i < NSIG; i++) {
+      if (mSigCnt[i] != 0) {
+        std::cout << prog << ": signal " << i << " caught " << mSigCnt[i]
+                  << " time\n";
+      }
+    }
+  }
+
+  void setup() {
+    struct sigaction callback;
+    callback.sa_handler = handler;
+    for (auto n = 1; n < NSIG; n++) {
+      sigaction(n, &callback, nullptr);
+    }
+  }
+
+private:
+  static void handler(int sig) {
+    if (sig == SIGINT) {
+      mGotSigInt = 1;
+    } else {
+      mSigCnt[sig]++;
+    }
+  }
+
+  void errExit(const std::string &funcName) {
+    std::cout << "Error on using " << funcName << "\n";
+    exit(EXIT_FAILURE);
+  }
+
+  static volatile sig_atomic_t mGotSigInt;
+  static std::array<uint32_t, NSIG> mSigCnt;
+};
+
+volatile sig_atomic_t SigReceiver::mGotSigInt = 0;
+std::array<uint32_t, NSIG> SigReceiver::mSigCnt;
+
+int main(int argc, char *argv[]) {
+  auto sleepTime = 0;
+  if (argc > 1) {
+    sleepTime = std::stol(argv[1]);
+  }
+
+  SigReceiver sigReceiver;
+
+  sigReceiver.run(argv[0], std::chrono::seconds(sleepTime));
+
+  return 0;
+}
+```
