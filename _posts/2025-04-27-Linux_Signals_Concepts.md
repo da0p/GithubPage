@@ -334,3 +334,234 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 ```
+
+## Design Signal Handlers
+
+In general, it is preferable to write simple signal handlers. One important reason for this is to
+reduce the risk of creating race conditions. Two common designs for signal handlers are:
+
+- The signal handler sets a global flag and exits. The main program periodically checks this flag
+and, if it is set, takes appropriate action
+- The signal handler performs some types of cleanup and then either terminates the process or uses a
+nonlocal goto to unwind the stack and return control to a predetermined location in the main program
+
+### Reentrant and Async-Signal-Safe Functions
+
+A function is said to be _reentrant_ if it can safely be simultaneously executed by multiple threads
+of execution in the same process. A function maybe _nonreentrant_ if it updates global or static
+data structures. (A function that employs only local variables is guaranteed to be reentrant.)
+
+Note that not all system calls and library functions can be safely called from a signal handler.
+
+### Standard Async-Signal-Safe Functions
+
+An _async\-signal\-safe_ function is one that the implementation guarantees to be safe when called
+from a signal handler. A function is async-signal-safe either because it is reentrant or because it
+is not interruptible by a signal handler
+
+A function is unsafe only when invocation of a signal handler interrupts the execution of an unsafe
+function, and the handler itself also calls an unsafe function. In other words, when writing signal
+handlers, we have two choices:
+
+- Ensure that the code of the signal handler itself is reentrant and that it calls only
+async-signal-safe functions
+- Block delivery of signals while executing code in the main program that calls unsafe functions or
+works with global data structures also updated by the signal handler
+
+### Terminating a Signal Handler
+
+Two ways to terminate a signal handler:
+
+- Normally 
+  - Returning to the main program
+- Abruptedly
+  - Use _\_exit()_ to terminate the process. Beforehand, the handler may carry out some cleanup
+  cleanup actions
+  - Use _kill()_ or _raise()_ to send a signal that kills the process
+  - Perform a nonlocal goto from the signal handler
+  - Use the _abort()_ function to terminate the process with a core dump
+
+### Handling a Signal on an Alternate Stack
+
+Normally, when a signal handler is invoked, the kernel creates a frame for it on the process stack.
+However, this may not be possible if a process attempts to extend the stack beyond the maximum
+possible size.
+
+Whena a process attemps to grow its stack beyond the maximum possible size, the kernel genereates a
+_SIGSEGV_ signal for the process. However, since the stack space is exhausted, the kernel can't
+create a frame for any _SIGSEGV_ handler that the program may have established. Consequently, the
+handler is not invoked, and the process is terminated.
+
+If we instead need to ensure that the _SIGSEGV_ signal is handled in these circumstances, we can do
+the following:
+
+1. Allocate an area of memory, called an _alternate signal stack_, to be used for the stack frame of
+a signal handler
+2. Use the _sigaltstack()_ system call to inform the kernel of the existence of the alternate signal
+stack
+3. When establishing the signal handler, specify the _SA\_ONSTACK_ flag, to tell the kernel that the
+frame for this handler should be created on the alternate stack
+
+```C
+#include <signal.h>
+int sigaltstack(const stack_t *sigstack, stack_t *old_sigstack);
+
+
+typedef struct {
+  void *ss_sp;       /* Starting address of alternate stack */
+  int ss_flags;      /* Flags: SS_ONSTACK, SS_DISABLE */
+  size_t ss_size;    /* Size of alternate stack */
+} stack_t;
+```
+
+### Special Cases for Delivery, Disposition, and Handling
+
+**_SIGKILL_** and **_SIGSTOP_**: It is not possible to change the default action for _SIGKILL_ and 
+_SIGSTOP_, which always stops a process. These two signals also can't be blocked.
+
+**_SIGCONT_** and **_stop signals_**: If a process is currently stopped, the arrival of a _SIGCONT_
+signal always causes the process to resume, even if the process is currently blocking or ignoring
+_SIGCONT_. This feature is necessary because it would otherwise be impossible to resume such stopped
+processes. Whenever _SIGCONT_ is delivered to a process, any pending stop signals for the process
+are discarded. Conversely, if any of the stop signals is delivered to a process, then any pending
+_SIGCONT_ signal is automatically discarded. These steps are taken in order to prevent the action of
+a _SIGCONT_ signal from being subsequently undone by a stop signal that was actually sent beforehand,
+and vice versa.
+
+### Interruptible and Uninterruptible Process Sleep States
+
+At various time, the kernel may put a process to sleep, and two sleep states are distinguished:
+
+- _TASK\_INTERRUPTIBLE_: The process is waiting for some event. A process may speedn an arbitrary
+length of time in this state. If a signal is generated for a process in this state, then the
+operation is interrupted and the process is woken up by the delivery of a signal (marked by the
+letter _S_ in the _STAT_ field)
+- _TASK\_UNINTERRUPTIBLE_: The process is waiting on certain special classes of event, such as the
+completion of a disk I/O. If a signal is generated for a process in this state, then the signal is
+not delivered until the process emerges from this state (marked with a _D_ in the _STAT_ field)
+- _TASK\_KILLABLE_: This state is like _TASK\_UNINTERRUPTIBLE_, but wakes the process if a fatal
+signal is received. By converting relevant parts of the kernel code to use this state, various
+scenarios where a hung process requires a system restart can be avoided.
+
+### Hardware-Generated Signals
+
+_SIGBUS_, _SIGPFE_, _SIGILL_, and _SIGSEGV_ can be generated as a consequence of a hardware exception
+or, less usually, by being sent by _kill()_. In the case of hardware exception, the behavior of a
+process is undefined if it returns from a handler for the signal, or if it ignores or blocks the signal.
+There is a number of reasons for it:
+
+- _Returning from the signal handler_: causes an infinite loop
+- _Ignoring the signal_: makes no sense since it is unclear how a program should continue
+- _Blocking the signal_: makes no sense since  it is unclear how a program should continue
+
+The correct way to deal with hardware-generated signals is either to accept their default action
+(process termination) or to write handlers that don't perform a normal return. Other than returning
+normally, a handler can complete execution by calling _\_exit()_ to terminate the process or by
+calling _siglongjmp()_ to ensure that controll passes to some point in the program other than the
+instruction that generated the signal
+
+### Timing and Order of Signal Delivery
+
+Synchronous signals are delivered immediately (self-generated signal or hardware-generated signal).
+When a signal is generated asynchronously, there may be a (small) delay while the signal is pending
+between the time when it was generated and the time it is actually delivered, even if we have not
+blocked the signal. The reason for this is that the kernel delivers a pending signal to a process
+only at the next switch from kernel mode to user mode while executing that process. That means the
+signal is delivered at one of the following times:
+
+- When the process is rescheduled after it earlier timed out
+- At completion of a system call (delivery of the signal may cause a blocking system call to
+completely prematurely)
+
+If a process has multiple pending signals that are unblocked using _sigprocmask()_, then all of
+signals are immediately delivered to the process. We shouldn't rely on the delivery order of multiple
+signals. However, the standards provide guarantees about the order in which multiple unblocked
+realtime signals are delivered in order
+
+When multiple unblocked signals are awaiting delivery, if a switch between kernel mode and user mode
+occurs during the execution of a signal handler, then the execution of that handler will be
+interruped by the invocation of a second signal handler
+
+![Delivery of multiple unblocked signals](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/delivery_multiple_unblocked_signals.drawio.png)
+
+## Realtime Signals
+
+Realtime signals have the following advantages over standard signals:
+
+- Realtime signals provide an increased range of signals that can be used for application-defined
+purposes. Only two standard signals are freely available for application-defined purposes: _SIGUSR1_
+and _SIGUSR2_
+- Realtime signals are queued. If multiple instances of a realtime signal are sent to a process,
+then the signal is delivered multiple times. By contrast, if we send further instances of a standard
+signal that is already pending for a process, that signal is delivered only once
+- When sending a realtime signal, it is possible to specify data that accompanies the signal
+- The order of delivery of different realtime signals is guaranteed. If multiple different realtime
+signals are pending, then the lowest-numbered signal is delivered first or they are considered
+higher priority
+
+In order to send a realtime signal to a process, we need to use _sigqueue()_ system call
+```c
+#define _POSIX_C_SOURCE 199309
+#include <signal.h>
+
+int sigqueue(pid_t pid, int sig, const union sigval value);
+```
+
+### Handling Realtime Signals
+
+Realtime signals can be handled just like standard signals, using a normal (sigle-argument) signal
+handler. Alternatively, we can handle a realtime signal using a three-argument signal handler
+established using the _SA\_SIGINFO_ flag
+
+### Synchronously Waiting for a Signal
+
+We can use the _sigwaitinfo()_ system call to synchronously _accept_ a signal. This approach can
+help to avoid the need to write a signal handler and to handle the complexities of asynchronous
+delivery of signals
+
+```C
+#define _POSIX_C_SOURCE 199309
+#include <signal.h>
+
+int sigwaitinfo(const sigset_t *set, siginfo_t *info);
+```
+
+_sigwaitinfo()_ system suspends execution of the process until one of the signals in the signal set
+pointed to by _set_ is delivered. If one of the signals in _set_ is already pending at the time of
+the call, _sigwaitinfo()_ returns immediately. The delivered signal is removed from the process's
+list of pending signals, and the signal number is returned as the function result.
+
+An alternative option is _sigtimedwait()_ system call, which allows us to specify a time limit
+for waiting
+
+```C
+int sigtimedwait(const sigset_t *set, siginfo_t *info, const struct timespec *timeout);
+```
+
+Linux also provides _signalfd()_ system call, which creates a special file descriptor from which
+signals directed to the caller can be read. The _signalfd_ mechanism provides an alternative to the
+use of _sigwaitinfo()_ for synchronous accepting signals
+
+```C
+#include <sys/signalfd.h>
+
+int signalfd(int fd, const sigset_t *mask, int flags);
+```
+
+Then we can use _read()_ to retrieve as many _signalfd\_siginfo_ structures as there are signals
+pending and will fit in the supplied bufer. If no signals are pending at the time of the call, then
+_read()_ blocks until a signal arrives. When no longer require a _signalfd_ fiel descriptor, it
+should be closed in order to release the associated kernel resources
+
+## Interprocess Communication with Signals
+
+Signals can be considered as a form of interprocess communication. However, signals suffer a number
+of limitations as an IPC mechanism.
+
+- Asynchronous nature of signals means that we face various problems including reentrancy
+requirements, race conditions, and the correct handling of global variables from signal handlers
+- Standard signals are not queued. Event for realtime signals, there are upper limits on the number
+of signals that may be queued. This means that in order to avoid loss of information, the process
+receiving the signals must have a method of informing the send that it is ready to receive another
+signal
+- Signals carry only a limited amount of information
