@@ -53,3 +53,69 @@ implementations, including Linux use two techniques to avoid such wasteful copyi
     a technique known as _copy\-on\-write_
 
 ![Copy on Write](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/copy_on_write.drawio.png)
+
+### Race Conditions
+
+After a _fork()_, it is undetermined if the parent process or child process will run first. This
+situation can cause race conditions. In order to avoid such problem, we can rely on signals to
+synchronize the parent and child process
+
+## Process Termination
+
+A process may terminate in two general ways:
+
+- **Abnormal termination**: caused by the delivery of a signal whose default action is to terminate
+  the process
+- **Normal termination**: by using _\_exit()_ system call
+
+During both normal and abnormal termination of a process, the following actions occur:
+
+- Open file descriptors, directory streams, message catalog descriptors, and conversion descriptors
+  are closed
+- As a consequence of closing file descriptors, any file locks held by this process are released
+- Any attached System V shared memory segments are detached, and the _shm\_nattch_ counter
+  corresponding to each segment is decremented by one
+- For each System V semaphore for which a _semadj_ value has been set by the process, that _semadj_
+  value is added to the semaphore value
+- If this is the controlling process for a controlling terminal, then the _SIGHUP_ signal is sent to
+  each process in the controlling terminal's forground process group, and the terminal is
+  disassociated from the session
+- Any POSIX named semaphores that are open in the calling process are closed as though _sem\_close()
+  were called
+- Any POSIX message queues that are open in the calling process are closed as though _mq\_close()_
+  were called
+- If, as a consequence of this process exiting, a process group becomes orphaned and there are any
+  stopped processes in that group, then all processes in the group are sent a _SIGHUP_ signal
+  followed by a _SIGCONT_ signal
+- Any memory locks established by this proces using _mlock()_ or _mlockall()_ are removed
+- Any memory mappings established by this process using _mmap()_ are unmapped
+
+### Exit Handlers
+
+Sometimes, an application needs to automatically perform some operaetions on process termination.
+One approach in such situations is to use an _exit handler_. An exit handler is a programmer-supplied
+function that is registered at some point during the life of the process and is then automatically
+called during _normal_ process termination via _exit()_. Exit handlers are not called if a program
+calls _\_exit()_
+
+Some notes about registering exit handlers:
+
+- _atexit()_ can be used to register exit handlers. However, it suffers a couple of limitations. The
+  first is that when called, an exit handler doesn't know what status was passed to _exit()_. Knowing
+  the status can be useful in case an user want to perform different actions depending on whether
+  the process is exiting successfully or unsuccessfully. The second limitation is that we can't specify
+  an argument to the exit handler when it is called. Such a facility could be useful to define an exit
+  handler that performs different actions depending on its argument, or to register a function multiple
+  times, each time with a different argument
+- _on\_exit()_ mitigates the above problem
+- A child process created via _fork()_ inherits a copy of its parent's exit handler registrations. When
+  a process performs an _exec()_, all exit handler registrations are removed.
+- Multiple exit handlers can be registered. The invocation order is in the reverse
+
+Some notes about _fork()_ interaction with _exit()_ and _\_exit()_
+
+- _exit()_ flush the stdio buffer
+- _\_exit()_ does not flush the stdio buffer
+- If a child process created by fork(), it has the copy of of the user _stdio_ buffer, so we should
+  either use _fflush()_ to flush the _stdio_ buffer prio to a _fork()_ call (we can also disable
+  buffering) or calls _exit()_ for parent process but _\_exit()_ for child processes
