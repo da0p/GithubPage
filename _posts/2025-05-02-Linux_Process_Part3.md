@@ -104,3 +104,104 @@ while (waitpid(-1, nullptr, WNOHANG) > 0) {
 Note that for stopped children, it is possible for a parent process to receive the _SIGCHLD_ signal
 when one of its children is stopped by a signal. This behavior is controlled by the _SA\_NOCLDSTOP_
 flag when using _sigaction()_ to establish a handler for the _SIGCHLD_ signal
+
+```cpp
+#include <csignal>
+#include <cstdlib>
+#include <iostream>
+#include <sys/wait.h>
+
+static volatile int numLiveChildren = 0;
+
+void errMsg(const std::string &f) {
+  std::cout << "Error in using " << f << "\n";
+  exit(EXIT_FAILURE);
+}
+
+void usageErr(const std::string &progName) {
+  std::cout << progName << " child-sleep-time...\n";
+  exit(EXIT_FAILURE);
+}
+
+static void sigChldHandler(int sig) {
+  // Save errno just in case we modify errno, and restore later
+  auto savedErrno = errno;
+
+  std::cout << "Handler caught SIGCHLD\n";
+
+  pid_t childPid;
+  int status;
+  while ((childPid = waitpid(-1, &status, WNOHANG)) > 0) {
+    std::cout << "Reaped child PID = " << childPid << "\n";
+    numLiveChildren--;
+  }
+
+  if (childPid == -1 && errno != ECHILD) {
+    errMsg("waitpid");
+  }
+
+  sleep(5);
+  std::cout << "Handler returning after sleep\n";
+
+  // Restore errno
+  errno = savedErrno;
+}
+
+int main(int argc, char *argv[]) {
+  if (argc < 2 || std::string(argv[1]) == "--help") {
+    usageErr(argv[0]);
+  }
+
+  // disable buffering of stdout to avoid flushing twice
+  // from parent process and child process
+  setbuf(stdout, nullptr);
+  int sigCnt = 0;
+  numLiveChildren = argc - 1;
+
+  // Set up signal handler
+  struct sigaction sa;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = 0;
+  sa.sa_handler = sigChldHandler;
+  if (sigaction(SIGCHLD, &sa, nullptr) == -1) {
+    errMsg("sigaction");
+  }
+
+  // Block SIGCHLD to prevent its delivery if a child terminates
+  // before the parent commences the sigsuspend() loop
+  sigset_t blockMask;
+  sigemptyset(&blockMask);
+  sigaddset(&blockMask, SIGCHLD);
+  if (sigprocmask(SIG_SETMASK, &blockMask, nullptr) == -1) {
+    errMsg("sigprocmask");
+  }
+
+  for (int j = 1; j < argc; j++) {
+    switch (fork()) {
+    case -1:
+      errMsg("fork");
+    case 0:
+      sleep(std::stol(argv[j]));
+      std::cout << "Child " << j << "(PID = " << getpid() << ") exiting\n";
+      _exit(EXIT_SUCCESS);
+    default:
+      break;
+    }
+  }
+
+  // Parent comes here to wait for SIGCHLD until all children are dead
+  sigset_t emptyMask;
+  sigemptyset(&emptyMask);
+  while (numLiveChildren > 0) {
+    if (sigsuspend(&emptyMask) == -1 && errno != EINTR) {
+      errMsg("sigsuspend");
+    }
+    sigCnt++;
+  }
+
+  std::cout << "All " << argc - 1 << " children have terminated;"
+            << "SIGCHLD was caught " << sigCnt << " times\n";
+
+  exit(EXIT_SUCCESS);
+}
+```
