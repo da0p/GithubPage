@@ -141,3 +141,42 @@ Some other notes:
   information about the application's state. If no thread is waiting on the condition variable at
   the time that it is signaled, then the signal is lost. A thread that later waits on the condition
   variable will unblock only when the variable is signaled once more
+
+## Thread Cancellation
+
+Sometimes, it can be useful to _cancel_ a thread; that is, to send it a request asking it to
+terminate now
+
+A thread can be cancelled using _pthread\_cancel()_. This function returns immediately, that is, it
+doesn't wait for the target thread to terminate. Then what happens to the target thread and when it
+happens, depends on that thread's cancellation state and type
+
+```c
+#include <pthread.h>
+
+int pthread_cancel(pthread_t thread);
+```
+
+In order to control how a thread responds to a cancellation requestion, we can set flags for the thread
+
+```c
+#include <pthread.h>
+
+int pthread_setcancelstate(int state, int *oldstate);
+int pthread_setcanceltype(int type, int *oldtype);
+```
+
+| Cancel State           | Description                                                                                                     |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------- |
+| PTHREAD_CANCEL_DISABLE | Thread is not cancelable. If a cancellation request received, it remains pending until cancelability is enabled |
+| PTHREAD_CANCEL_ENABLE  | Thread is cancelable. Default cancelability state                                                               |
+
+
+| Cancel Type                 | Description                                                                                                                 |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| PTHREAD_CANCEL_ASYNCHRONOUS | Thread may be canceled at any time                                                                                          |
+| PTHREAD_CANCEL_DEFERRED     | The cancellation remains pending until a cancellation point is reached. Default cancelability type in newly created threads |
+
+When cancelability is enabled and defered, a cancellation request is acted upon only when a thread
+next reaches a _cancellation point_. A cancellation point is a call to one of a set of functions
+defined by the implementation
