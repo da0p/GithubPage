@@ -88,7 +88,7 @@ Writes of up to PIPE_BUF bytes are guaranteed to be atomic
 A pipe is simply a buffer maintained in kernel memory. This buffer has a maximum capacity. Once a
 pipe is full, further writes to the pipe block until the reader removes some data from the pipe
 
-## _popen()_
+### _popen()_
 
 A common use for pipes is to execute a shell command and either read its output or send it some input.
 The _popen()_ and _pclose()_ functions are provided to simplify this task
@@ -103,7 +103,7 @@ int pclose(FILE *stream);
 
 ![UNIX Pipe](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/popen.drawio.png)
 
-## FIFOs
+### FIFOs
 
 Semantically, a FIFO is similar to a pipe. The main difference is that a FIFO has a name within the
 file system and is opened in the same way as a regular file. This allows a FIFO to be used for communication
@@ -120,3 +120,76 @@ Opening a FIFO synchronizes the reading and writing processes
 - Once a FIFO has been created, any process can open it, subject to the usual file permission checks.
 - Opening a FIFO for reading blocks until another process opens the FIFO for writing
 - Opening the FIFO for writing blocks until another process opens the FIFO for reading
+
+## POSIX IPC
+
+Three POSIX IPC mechanisms are the following:
+
+- _Message queues_ can be used to pass messages between processes. Message boundaries are preserved,
+  so that readers and writers communicate in units of messages. POSIX message queues permit each
+  message to be assigned a priority, which allows high-priority messages to be queued ahead of low-priority
+  messages
+- _Semaphores_ permit multiple processes to synchronize their actions. POSIX semaphore is a kernel-maintained
+  integer whose value is never permitted to go below 0. POSIX semaphores are allocated individually and
+  operated individually using two operations that increase and decrease a semaphore's value by one
+- _Shared memory_ enables multiple processes to share the same region of memory. Once one process has
+  updated the shared memory, the change is immediately visible to other processes sharing the same
+  region
+
+### POSIX Message Queues
+
+The main functions in the POSIX message queue API are the following:
+
+- The _mq\_open()_ function creates a new message queue or opens an existing queue, returning a message
+  queue descriptor for use in later calls
+- The _mq\_send()_ function writes a message to a queue
+- The _mq\_receive()_ function reads a message from a queue
+- The _mq\_close()_ function closes a message queue that the process previously opened
+- The _mq\_unlink()_ function removes a message queue name and marks the queue for deletion when all
+  processes have closed it
+- _mq\_setattr()_ and _mq\_getattr()_ can be used to change a message queue attributes or get the
+  message queue attributes
+- _mq\_notify()_ function allows a process to register for message notification from a queue. After
+  registering, the process is notified of the availability of a message by delivery of a signal or by
+  the invocation of a function in a separate thread
+
+### Relationship Between Descriptors and Message Queues
+
+The relationship between a message queue descriptor and an open message queue is analogous to the
+relationship between a file descriptor and open file. A message queue descriptor is a per-process
+handle that refers to an entry in the system-wide table of open message queue descriptions, and this
+entry in turn refers to a message queue object.
+
+![Message Queue Descriptor Table](https://raw.githubusercontent.com/da0p/GithubPage/main/docs/assets/message_queue_table.drawio.png)
+
+### Message Notification
+
+A feature that distinguishes POSIX message queues from their System V counterparts is the ability to
+receive asynchronous notification of the availability of a message on a previously empty queue. This
+feature means that instead of making a blocking _mq\_receive()_ call or making the message queue
+descriptor nonblocking and performing periodic _mq\_receive()_ calls on the queue, a process can request
+a notification of message arrival and then perform other tasks until it is notified. A process can
+choose to be notified via a signal or via invocation of a function in a separate thread
+
+```c
+#include <mqueue.h>
+
+int mq_notify(mqd_t mqdes, const struct sigevent *notification);
+```
+
+There are a few points to be noted
+
+- At any time, only one process can be registered to receive a notification from a particular message
+  queue. If there is already a process registered for a message queue, further attempts to register
+  for that queue fail (_mq\_notify()_ fails with the error _EBUSY_)
+- The registered process is notified only when a message arrives on a queue that was previously empty.
+  If a queue already contains messages at the time of the registration, a notification will occur only
+  after the queue is emptied and a new message arrives
+- After one notification is sent to the registered process, the registration is removed, and any process
+  can then register itself for notification. In other words, as long as a process wishes to keep
+  receiving notifications, it must reregister itself after each notification by once again calling _mq\_notify()_
+- The registered process is notified only if some other process is not currently blocked in a call to
+  _mq\_receive()_ for the queue. If some other process is blocked in _mq\_receive()_, that process will
+  read the message, and the registered process will remain registered
+- A process can explicitly deregister itself as the target for message notification by calling _mq\_notify()_
+  with a _notification_ argument of NULL
