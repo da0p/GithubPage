@@ -136,7 +136,7 @@ Three POSIX IPC mechanisms are the following:
   updated the shared memory, the change is immediately visible to other processes sharing the same
   region
 
-### POSIX Message Queues
+## POSIX Message Queues
 
 The main functions in the POSIX message queue API are the following:
 
@@ -193,3 +193,47 @@ There are a few points to be noted
   read the message, and the registered process will remain registered
 - A process can explicitly deregister itself as the target for message notification by calling _mq\_notify()_
   with a _notification_ argument of NULL
+
+## POSIX Semaphores
+
+Two types of POSIX semaphores:
+
+- _Named semaphores:_ This type of semaphore has a name. By calling _sem\_open()_ with the same name,
+  unrelated processes can access the same semaphore
+- _Unnamed semaphores:_ This type of semaphore doesn't have a name; instead, it resides at an
+  agreed-upon location in memory. Unnamed semaphores can be shared between processes or between a
+  group of threads. When shared between processes, the semaphore must reside in a region of shared
+  memory. When shared between threads, the semaphore may reside in an area of memory shared by the
+  threads (e.g., on the heap or in a global variable)
+
+### Named Semaphores
+
+The following functions are needed to work with a named semaphore:
+
+- The _sem\_open()_ function opens or creates a semaphore, initializes the semaphore if it is created
+  by the call, and returns a handle for use in later calls
+- The _sem\_post(sem)_ and _sem\_wait(sem)_ functions respectively increment and decrement a semaphore's
+  value
+- The _sem\_getvalue()_ function retrieves a semaphore's current value
+- The _sem\_close()_ function removes the calling process's association with a semaphore that it previously
+  opened
+- The _sem\_unlink()_ function removes a semaphore name and marks the semaphore for deletion when all
+  processes have closed it
+
+### Unnamed Semaphores
+
+Unnamed semaphores (also known as _memory\-based semaphores_) are variables of type _sem\_t_ that are
+stored in memory allocated by the application. The semaphore is made available to the processes or
+threads that use it by placing it in an area of memory that they share
+
+Operations on unnamed semaphores use the same functions (_sem\_wait()_, _sem\_post()_, _sem\_getvalue()_,
+and so on) that are used to operate on named semaphores. In addition, two further functions are required:
+
+- The _sem\_init()_ function initializes a semaphore and informs the system of whether the semaphore
+  will be shared between processes or between the threads of a single process
+- The _sem\_destroy(sem)_ function destroys a semaphore
+
+Unamed semaphore that is usually used when
+
+- Shared between threads, there is no need for a name
+- Shared between related processes (e.g. parent and child)
