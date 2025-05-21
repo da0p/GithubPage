@@ -237,3 +237,24 @@ Unamed semaphore that is usually used when
 
 - Shared between threads, there is no need for a name
 - Shared between related processes (e.g. parent and child)
+
+## POSIX Shared Memory
+
+POSIX shared memory allows to us to share a mapped region between unrelated processes without needing
+to create a corresponding mapped file. Linux uses a dedicated _tmpfs_ file system mounted under _/dev/shm_.
+This file system has kernel persistence - the shared memory objects that it contains will persist even
+if no process currently has them open, but they will be lost if the system is shut down
+
+In order to use a POSIX shared memory object, two steps must be performed
+
+1. Use the _shm\_open()_ function to open an object with a specified name. The _shm\_open()_ function
+   is analogous to the _open()_ system call. It either creates a new shared memory object or opens an
+   existing object. As its function result, _shm\_open()_ returns a file descriptor referring to the
+   object
+2. Pass the file descriptor obtained in the previous step in a call to _mmap()_ that specified _MAP\_SHARED_
+  in the _flags_ argument. This maps the shared memory object intot he process's virtual address space.
+  Once we have mapped the object, we can close the file descriptor without affecting the mapping. However,
+  we may need to keep the file descriptor open for subsequent use in calls to _fstat()_ and _ftruncate()_
+Since a shared memory object is referred to using a file descriptor, we can usefully employ various
+file descriptor system calls already defined in the UNIX system, rather than needing new special-purpose 
+system calls
